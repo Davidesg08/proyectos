@@ -1,0 +1,216 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+#app { padding: 1rem 0; max-width: 780px; margin: 0 auto; }
+.header { margin-bottom: 1.5rem; }
+.header h1 { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+.header p { font-size: 14px; color: var(--color-text-secondary); margin-top: 4px; }
+.progress-bar { height: 4px; background: var(--color-background-secondary); border-radius: 2px; margin: 1rem 0; }
+.progress-fill { height: 4px; background: #534AB7; border-radius: 2px; transition: width 0.3s; }
+.stats { display: flex; gap: 12px; margin-bottom: 1.5rem; }
+.stat-card { flex: 1; background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; }
+.stat-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 2px; }
+.stat-value { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+.question-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
+.question-num { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; }
+.question-text { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 1rem; line-height: 1.5; }
+.options { display: flex; flex-direction: column; gap: 8px; }
+.option { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); cursor: pointer; font-size: 14px; color: var(--color-text-primary); transition: background 0.15s, border-color 0.15s; line-height: 1.4; }
+.option:hover { background: var(--color-background-secondary); border-color: var(--color-border-secondary); }
+.option.selected { background: #EEEDFE; border-color: #534AB7; color: #3C3489; }
+.option.correct { background: #EAF3DE; border-color: #3B6D11; color: #27500A; }
+.option.wrong { background: #FCEBEB; border-color: #A32D2D; color: #791F1F; }
+.option.show-correct { background: #EAF3DE; border-color: #3B6D11; color: #27500A; }
+.option-letter { font-weight: 500; min-width: 18px; }
+.radio { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--color-border-secondary); flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: background 0.15s, border-color 0.15s; }
+.radio.checked { background: #534AB7; border-color: #534AB7; }
+.radio.checked::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: white; }
+.radio.correct-r { background: #3B6D11; border-color: #3B6D11; }
+.radio.correct-r::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: white; }
+.radio.wrong-r { background: #A32D2D; border-color: #A32D2D; }
+.radio.wrong-r::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: white; }
+.result-badge { margin-top: 10px; font-size: 13px; padding: 6px 10px; border-radius: var(--border-radius-md); display: none; }
+.result-badge.correct-b { background: #EAF3DE; color: #27500A; display: block; }
+.result-badge.wrong-b { background: #FCEBEB; color: #791F1F; display: block; }
+.btn-row { display: flex; gap: 10px; margin-top: 1.5rem; flex-wrap: wrap; }
+button { padding: 9px 20px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-primary); font-size: 14px; cursor: pointer; font-family: var(--font-sans); transition: background 0.15s; }
+button:hover { background: var(--color-background-secondary); }
+button.primary { background: #534AB7; color: white; border-color: #534AB7; }
+button.primary:hover { background: #3C3489; }
+button.danger { background: #FCEBEB; color: #791F1F; border-color: #A32D2D; }
+button.danger:hover { background: #F7C1C1; }
+#results-summary { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.5rem; margin-bottom: 1.5rem; display: none; }
+.score-big { font-size: 36px; font-weight: 500; }
+.score-msg { font-size: 15px; color: var(--color-text-secondary); margin-top: 4px; }
+.answered-indicator { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: #534AB7; margin-top: 5px; opacity: 0; transition: opacity 0.2s; }
+.answered-indicator.visible { opacity: 1; }
+</style>
+
+<div id="app">
+  <div class="header">
+    <h1>Examen: Placas base</h1>
+    <p>UT2 — Montaje y mantenimiento de equipos · 1.º SMR · 30 preguntas</p>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+  <div class="stats">
+    <div class="stat-card"><div class="stat-label">Respondidas</div><div class="stat-value" id="answered-count">0 / 30</div></div>
+    <div class="stat-card"><div class="stat-label">Correctas</div><div class="stat-value" id="correct-count" style="color:#3B6D11">—</div></div>
+    <div class="stat-card"><div class="stat-label">Incorrectas</div><div class="stat-value" id="wrong-count" style="color:#A32D2D">—</div></div>
+  </div>
+  <div id="results-summary">
+    <div class="score-big" id="score-text"></div>
+    <div class="score-msg" id="score-msg"></div>
+  </div>
+  <div id="questions"></div>
+  <div class="btn-row">
+    <button class="primary" onclick="checkAnswers()">Comprobar respuestas</button>
+    <button onclick="resetExam()">Reiniciar examen</button>
+  </div>
+</div>
+
+<script>
+const questions = [
+  { q: "¿Cuál es la función principal de la placa base?", opts: ["Solo alimentar los componentes", "Ser el elemento que determina la arquitectura completa del equipo y comunica todos los componentes", "Almacenar el sistema operativo", "Refrigerar el procesador"], ans: 1 },
+  { q: "¿Cuáles son los cuatro componentes básicos que casi siempre se instalan en una placa base?", opts: ["CPU, RAM, Tarjeta gráfica y Fuente", "Fuente de alimentación, Procesador, Memoria RAM y Unidades de almacenamiento", "Monitor, Teclado, Ratón y Altavoces", "Chipset, BIOS, VRM y PCIe"], ans: 1 },
+  { q: "El «factor de forma» de una placa base se refiere a:", opts: ["Solo al color de la placa", "Forma, dimensiones, posición de anclajes y conexiones eléctricas", "Solo al número de slots PCIe", "Solo a la marca del chipset"], ans: 1 },
+  { q: "¿Cuál es el factor de forma más grande y completo?", opts: ["Mini-ITX", "Micro-ATX", "Standard-ATX", "Pico-ITX"], ans: 2 },
+  { q: "¿Qué factor de forma es el más pequeño y se usa habitualmente en equipos muy compactos?", opts: ["E-ATX", "Nano-ITX / Pico-ITX", "Standard-ATX", "Micro-ATX"], ans: 1 },
+  { q: "El socket LGA se caracteriza porque:", opts: ["Los pines están en el procesador", "Los pines están en la placa base y el procesador tiene contactos planos", "Es exclusivo de procesadores AMD", "Solo se usa en placas antiguas"], ans: 1 },
+  { q: "La tecnología de inserción que permite colocar el procesador sin hacer fuerza se llama:", opts: ["ZIF (Zero Insertion Force)", "PGA", "DIMM", "NorthBridge"], ans: 0 },
+  { q: "En el chipset tradicional, el NorthBridge se encarga principalmente de:", opts: ["Gestionar USB, SATA y audio", "Gestionar la RAM y los buses gráficos (AGP/PCIe)", "Controlar el panel frontal", "Alimentar los ventiladores"], ans: 1 },
+  { q: "En los chipsets de nueva generación el NorthBridge desaparece porque:", opts: ["Sus funciones pasan al propio microprocesador", "Se sustituye por el SouthBridge", "Ya no se necesita RAM", "Se conecta mediante IDE"], ans: 0 },
+  { q: "El canal de comunicación entre el PCH y el microprocesador se llama:", opts: ["FSB", "DMI (hasta 10 GB/s)", "AGP", "LPC"], ans: 1 },
+  { q: "Los slots de memoria RAM actuales (escritorio) se llaman:", opts: ["SIMM", "DIMM (64 bits)", "SO-DIMM", "Micro-DIMM"], ans: 1 },
+  { q: "¿Qué tecnología de memoria RAM es la actual en la mayoría de placas modernas?", opts: ["DDR2", "DDR4 (y DDR5 en las más nuevas)", "DDR", "SDRAM"], ans: 1 },
+  { q: "La BIOS es una memoria de tipo:", opts: ["Volátil (se borra al apagar)", "No volátil (ROM/EPROM/Flash) que contiene la configuración básica", "Solo RAM", "Solo caché del procesador"], ans: 1 },
+  { q: "¿Qué ocurre si se retira la pila de la placa base (CR2032)?", opts: ["Se borra permanentemente la BIOS", "La configuración CMOS se resetea a valores de fábrica", "La placa deja de encender", "Se elimina el chipset"], ans: 1 },
+  { q: "El VRM es el componente encargado de:", opts: ["Regular los voltajes que necesita la CPU y otros componentes", "Conectar los discos duros", "Gestionar la red Ethernet", "Proporcionar audio"], ans: 0 },
+  { q: "El bus PCI (color blanco) está:", opts: ["En pleno uso en placas modernas", "En desuso (tasa máxima 133 MB/s)", "Solo para tarjetas gráficas", "Más rápido que PCIe x16"], ans: 1 },
+  { q: "El bus PCI-Express x16 se utiliza principalmente para:", opts: ["Tarjetas de sonido", "Tarjetas gráficas", "Discos duros IDE", "Teclado y ratón"], ans: 1 },
+  { q: "¿Cuántos pines tiene normalmente el conector ATX principal de la placa base?", opts: ["4 pines", "8 pines", "24 pines", "40 pines"], ans: 2 },
+  { q: "El conector de alimentación de la CPU suele ser de:", opts: ["24 pines", "4, 8 o 4+4/4+8 pines (12 V)", "9 pines", "19 pines"], ans: 1 },
+  { q: "¿Cuál es la velocidad máxima del estándar SATA 3?", opts: ["133 MB/s", "600 MB/s", "4 GB/s", "63 GB/s"], ans: 1 },
+  { q: "El conector M.2 se utiliza principalmente para:", opts: ["Tarjetas gráficas", "Unidades SSD NVMe o SATA (muy rápidas y compactas)", "Alimentación de ventiladores", "Puertos USB traseros"], ans: 1 },
+  { q: "Los conectores IDE antiguos permitían conectar por canal:", opts: ["Solo 1 disco duro", "Máximo 2 dispositivos (master/slave)", "Hasta 6 dispositivos", "Solo SSD"], ans: 1 },
+  { q: "Las cabeceras USB 2.0 y USB 3.0 de la placa base sirven para:", opts: ["Conectar los puertos USB delanteros de la caja", "Alimentar la CPU", "Conectar monitores", "Instalar módulos de memoria"], ans: 0 },
+  { q: "La cabecera del panel frontal se utiliza para conectar:", opts: ["Power switch, Reset, LEDs de encendido y actividad de disco", "Solo la tarjeta gráfica", "Los discos SATA", "El chipset"], ans: 0 },
+  { q: "El chip TPM (Trusted Platform Module) sirve para:", opts: ["Refrigerar la CPU", "Cifrado de información y almacenamiento seguro de claves", "Aumentar la velocidad de la RAM", "Conectar impresoras"], ans: 1 },
+  { q: "¿Qué color suelen tener los slots DIMM actuales?", opts: ["Siempre blanco", "Negro o varios colores (para identificar canales)", "Solo rojo", "Azul"], ans: 1 },
+  { q: "En una placa base moderna NO encontraremos normalmente:", opts: ["Puerto AGP", "Conectores SATA", "PCIe x16", "M.2"], ans: 0 },
+  { q: "La pila de la BIOS (CR2032) sirve para:", opts: ["Alimentar permanentemente el CMOS", "Encender la placa", "Refrigerar el chipset", "Proporcionar 12 V a la CPU"], ans: 0 },
+  { q: "¿Qué bus sustituyó al AGP para las tarjetas gráficas?", opts: ["PCI", "PCI-Express", "IDE", "LPC"], ans: 1 },
+  { q: "En la práctica final del tema, el número 2 de la placa suele corresponder a:", opts: ["El socket del procesador", "Los slots de RAM", "El conector ATX", "El chipset"], ans: 0 }
+];
+
+const letters = ['A', 'B', 'C', 'D'];
+const userAnswers = new Array(30).fill(null);
+let checked = false;
+
+function render() {
+  const container = document.getElementById('questions');
+  container.innerHTML = '';
+  questions.forEach((q, qi) => {
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.id = 'q' + qi;
+    let html = `<div class="question-num">Pregunta ${qi + 1} de 30</div>`;
+    html += `<div class="question-text">${q.q}</div>`;
+    html += `<div class="options">`;
+    q.opts.forEach((opt, oi) => {
+      html += `<div class="option" id="opt-${qi}-${oi}" onclick="selectOpt(${qi},${oi})">
+        <div class="radio" id="radio-${qi}-${oi}"></div>
+        <span class="option-letter">${letters[oi]}</span>
+        <span>${opt}</span>
+      </div>`;
+    });
+    html += `</div>`;
+    html += `<div class="result-badge" id="badge-${qi}"></div>`;
+    card.innerHTML = html;
+    container.appendChild(card);
+  });
+  updateStats();
+}
+
+function selectOpt(qi, oi) {
+  if (checked) return;
+  userAnswers[qi] = oi;
+  for (let i = 0; i < 4; i++) {
+    const el = document.getElementById(`opt-${qi}-${i}`);
+    const radio = document.getElementById(`radio-${qi}-${i}`);
+    el.classList.toggle('selected', i === oi);
+    radio.className = 'radio' + (i === oi ? ' checked' : '');
+  }
+  updateStats();
+}
+
+function updateStats() {
+  const answered = userAnswers.filter(a => a !== null).length;
+  document.getElementById('answered-count').textContent = answered + ' / 30';
+  document.getElementById('prog').style.width = Math.round(answered / 30 * 100) + '%';
+}
+
+function checkAnswers() {
+  const answered = userAnswers.filter(a => a !== null).length;
+  if (answered === 0) { alert('Responde al menos una pregunta antes de comprobar.'); return; }
+  checked = true;
+  let correct = 0, wrong = 0;
+  questions.forEach((q, qi) => {
+    const badge = document.getElementById(`badge-${qi}`);
+    const ua = userAnswers[qi];
+    if (ua === null) {
+      badge.className = 'result-badge';
+      badge.textContent = '';
+      for (let i = 0; i < 4; i++) {
+        if (i === q.ans) {
+          document.getElementById(`opt-${qi}-${i}`).classList.add('show-correct');
+          document.getElementById(`radio-${qi}-${i}`).className = 'radio correct-r';
+        }
+      }
+      return;
+    }
+    for (let i = 0; i < 4; i++) {
+      const optEl = document.getElementById(`opt-${qi}-${i}`);
+      const radioEl = document.getElementById(`radio-${qi}-${i}`);
+      optEl.classList.remove('selected');
+      radioEl.className = 'radio';
+      if (i === q.ans) { optEl.classList.add('correct'); radioEl.className = 'radio correct-r'; }
+      else if (i === ua && ua !== q.ans) { optEl.classList.add('wrong'); radioEl.className = 'radio wrong-r'; }
+    }
+    if (ua === q.ans) {
+      correct++;
+      badge.className = 'result-badge correct-b';
+      badge.textContent = '¡Correcto!';
+    } else {
+      wrong++;
+      badge.className = 'result-badge wrong-b';
+      badge.textContent = 'Incorrecto. La respuesta correcta es ' + letters[q.ans] + ': ' + q.opts[q.ans];
+    }
+  });
+  document.getElementById('correct-count').textContent = correct;
+  document.getElementById('wrong-count').textContent = wrong;
+  const pct = Math.round(correct / answered * 100);
+  const summary = document.getElementById('results-summary');
+  summary.style.display = 'block';
+  document.getElementById('score-text').textContent = correct + ' / ' + answered + ' correctas (' + pct + '%)';
+  let msg = '';
+  if (pct >= 90) msg = '¡Excelente! Dominas el tema de placas base.';
+  else if (pct >= 70) msg = 'Bien hecho. Repasa los fallos y lo clavaras.';
+  else if (pct >= 50) msg = 'Vas por buen camino. Sigue estudiando.';
+  else msg = 'Necesitas repasar más. ¡Tú puedes!';
+  document.getElementById('score-msg').textContent = msg;
+  summary.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function resetExam() {
+  checked = false;
+  userAnswers.fill(null);
+  document.getElementById('results-summary').style.display = 'none';
+  document.getElementById('correct-count').textContent = '—';
+  document.getElementById('wrong-count').textContent = '—';
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+render();
+</script>
