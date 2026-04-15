@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gestión de Redes — NextGen Wiki-IT</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="assets/css/wiki.css"/>
+  <style>
+    /* ── Sidebar Nav ─────────────────────────────────────────── */
+    .sidebar {
+      position: sticky; top: 72px;
+      height: calc(100vh - 80px);
+      overflow-y: auto;
+    }
+    .sidebar::-webkit-scrollbar { width: 3px; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border-bright); }
+
+    .sidebar-section {
+      margin-bottom: 1.75rem;
+    }
+    .sidebar-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+      padding: 0 0.5rem;
+    }
+    .sidebar-link {
+      display: block;
+      padding: 0.45rem 0.75rem;
+      color: var(--text-secondary);
+      font-size: 0.83rem;
+      border-radius: var(--radius-sm);
+      border-left: 2px solid transparent;
+      transition: all var(--transition);
+      text-decoration: none;
+    }
+    .sidebar-link:hover,
+    .sidebar-link.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: rgba(0,212,255,0.06);
+    }
+
+    /* ── IP Table ────────────────────────────────────────────── */
+    .subnet-visual {
+      height: 8px;
+      border-radius: 4px;
+      background: var(--border);
+      overflow: hidden;
+    }
+    .subnet-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-dim));
+    }
+
+    /* Topology diagram placeholder */
+    .topo-placeholder {
+      background: var(--bg-card);
+      border: 1px dashed var(--border-bright);
+      border-radius: var(--radius-lg);
+      height: 240px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 8px;
+      color: var(--text-muted);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.82rem;
+    }
+    .topo-icon { font-size: 2.5rem; opacity: 0.4; }
+
+    /* Step list */
+    .step-item {
+      display: flex; gap: 1.25rem;
+      padding: 1.25rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .step-item:last-child { border-bottom: none; }
+    .step-num {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      border: 1px solid var(--border-bright);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step-content h6 {
+      font-size: 0.9rem; font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+    .step-content p {
+      color: var(--text-secondary);
+      font-size: 0.845rem;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="wiki-navbar navbar navbar-expand-lg">
+  <div class="container-xl">
+    <a class="navbar-brand" href="index.html">
+      <div class="brand-icon"></div>
+      NextGen<span class="brand-tag">WIKI-IT</span>
+    </a>
+    <button class="navbar-toggler" type="button"
+      data-bs-toggle="collapse" data-bs-target="#mainNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav ms-4 me-auto">
+        <li class="nav-item"><a class="nav-link" href="index.html">Inicio</a></li>
+        <li class="nav-item"><a class="nav-link active" href="redes.html">Redes</a></li>
+        <li class="nav-item"><a class="nav-link" href="sistemas.html">Sistemas&nbsp;OS</a></li>
+        <li class="nav-item"><a class="nav-link" href="seguridad.html">Seguridad</a></li>
+      </ul>
+      <div class="nav-status d-none d-lg-flex me-3">
+        <span class="status-dot"></span>SISTEMA ONLINE
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header z-1">
+  <div class="container-xl">
+    <div class="corner-deco"></div>
+    <p class="page-header-tag">Gestión de Redes · módulo 01</p>
+    <h1>Gestión de <span class="accent-text">Redes</span></h1>
+    <p class="lead">Direccionamiento IP, configuración de routers, VLANs y protocolos de red para la infraestructura del departamento.</p>
+    <div class="d-flex gap-2 mt-3">
+      <span class="badge-wiki badge-info">TCP/IP</span>
+      <span class="badge-wiki badge-success">DHCP</span>
+      <span class="badge-wiki badge-info">DNS</span>
+      <span class="badge-wiki badge-warn">VLAN</span>
+      <span class="badge-wiki badge-info">Cisco IOS</span>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="container-xl z-1 pb-5">
+  <div class="row g-4">
+
+    <!-- SIDEBAR -->
+    <div class="col-lg-3 d-none d-lg-block">
+      <div class="sidebar">
+        <div class="sidebar-section">
+          <div class="sidebar-label">Direccionamiento</div>
+          <a href="#ip-scheme" class="sidebar-link active">Esquema de IPs</a>
+          <a href="#subnetting" class="sidebar-link">Subnetting</a>
+          <a href="#vlans" class="sidebar-link">VLANs</a>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-label">DHCP</div>
+          <a href="#dhcp-intro" class="sidebar-link">Introducción DHCP</a>
+          <a href="#dhcp-scope" class="sidebar-link">Configurar Scope</a>
+          <a href="#dhcp-reserve" class="sidebar-link">Reservas IP</a>
+          <a href="#dhcp-cisco" class="sidebar-link">DHCP en Cisco</a>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-label">Routers</div>
+          <a href="#router-config" class="sidebar-link">Config básica</a>
+          <a href="#ospf" class="sidebar-link">OSPF</a>
+          <a href="#bgp" class="sidebar-link">BGP (placeholder)</a>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-label">Herramientas</div>
+          <a href="#scripts-net" class="sidebar-link">Scripts de red</a>
+          <a href="#topologia" class="sidebar-link">Topología</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="col-lg-9">
+
+      <!-- ── Esquema de IPs ─────────────────────────── -->
+      <section id="ip-scheme" class="mb-5">
+        <div class="section-divider">
+          <p class="section-label mb-0">01</p>
+          <h2 class="section-title ms-3">Esquema de Direccionamiento IP</h2>
+        </div>
+
+        <div class="wiki-alert info mb-4">
+          <span class="alert-icon">ℹ️</span>
+          <div>Todos los rangos están reservados para uso interno. La red perimetral usa NAT hacia el ISP. Última actualización: <strong>15/04/2026</strong>.</div>
+        </div>
+
+        <div class="table-wrap mb-4">
+          <table class="wiki-table">
+            <thead>
+              <tr>
+                <th>VLAN / Segmento</th>
+                <th>Red</th>
+                <th>Máscara</th>
+                <th>Gateway</th>
+                <th>Rango DHCP</th>
+                <th>Uso</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>VLAN 10</strong> — Mgmt</td>
+                <td class="mono">192.168.10.0</td>
+                <td class="mono">/24</td>
+                <td class="mono">192.168.10.1</td>
+                <td class="mono">.100 – .200</td>
+                <td>Administración</td>
+                <td><span class="badge-wiki badge-success">Activo</span></td>
+              </tr>
+              <tr>
+                <td><strong>VLAN 20</strong> — Usuarios</td>
+                <td class="mono">192.168.20.0</td>
+                <td class="mono">/24</td>
+                <td class="mono">192.168.20.1</td>
+                <td class="mono">.10 – .254</td>
+                <td>PCs usuarios</td>
+                <td><span class="badge-wiki badge-success">Activo</span></td>
+              </tr>
+              <tr>
+                <td><strong>VLAN 30</strong> — Servidores</td>
+                <td class="mono">192.168.30.0</td>
+                <td class="mono">/24</td>
+                <td class="mono">192.168.30.1</td>
+                <td class="mono">Estático</td>
+                <td>Servidores</td>
+                <td><span class="badge-wiki badge-success">Activo</span></td>
+              </tr>
+              <tr>
+                <td><strong>VLAN 40</strong> — DMZ</td>
+                <td class="mono">10.10.40.0</td>
+                <td class="mono">/28</td>
+                <td class="mono">10.10.40.1</td>
+                <td class="mono">Estático</td>
+                <td>Servicios públicos</td>
+                <td><span class="badge-wiki badge-warn">Restringido</span></td>
+              </tr>
+              <tr>
+                <td><strong>VLAN 50</strong> — WiFi</td>
+                <td class="mono">172.16.50.0</td>
+                <td class="mono">/22</td>
+                <td class="mono">172.16.50.1</td>
+                <td class="mono">.10 – 1020</td>
+                <td>Dispositivos inalámbricos</td>
+                <td><span class="badge-wiki badge-success">Activo</span></td>
+              </tr>
+              <tr>
+                <td><strong>VLAN 99</strong> — Native</td>
+                <td class="mono">192.168.99.0</td>
+                <td class="mono">/30</td>
+                <td class="mono">—</td>
+                <td class="mono">—</td>
+                <td>Trunk/nativa</td>
+                <td><span class="badge-wiki badge-info">Reservado</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── DHCP Tutorial ─────────────────────────── -->
+      <section id="dhcp-intro" class="mb-5">
+        <div class="section-divider">
+          <p class="section-label mb-0">02</p>
+          <h2 class="section-title ms-3">Tutorial DHCP — Configuración Completa</h2>
+        </div>
+
+        <p class="text-muted-wiki mb-4">El Protocolo de Configuración Dinámica de Host (DHCP) automatiza la asignación de parámetros de red. A continuación se documenta la configuración en Windows Server 2022 y en Cisco IOS.</p>
+
+        <!-- Steps -->
+        <div class="wiki-card mb-4">
+          <h5 class="mb-1">📋 Pasos de Configuración — Windows Server DHCP</h5>
+          <p class="mb-3" style="color:var(--text-muted);font-size:0.82rem;">Rol DHCP Server en Windows Server 2019/2022</p>
+          <div id="dhcp-scope">
+            <div class="step-item">
+              <div class="step-num">01</div>
+              <div class="step-content">
+                <h6>Instalar el rol DHCP</h6>
+                <p>Desde Server Manager → Add Roles and Features → DHCP Server. Completar el asistente de configuración post-instalación.</p>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">02</div>
+              <div class="step-content">
+                <h6>Crear un Scope (Ámbito)</h6>
+                <p>DHCP Manager → Expand server → IPv4 → New Scope. Definir nombre, rango de IPs, máscara, exclusiones y duración del lease.</p>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">03</div>
+              <div class="step-content">
+                <h6>Configurar opciones del scope</h6>
+                <p>Scope Options → Definir: 003 Router (gateway), 006 DNS Servers, 015 DNS Domain Name, 044 WINS Servers (si aplica).</p>
+              </div>
+            </div>
+            <div class="step-item" id="dhcp-reserve">
+              <div class="step-num">04</div>
+              <div class="step-content">
+                <h6>Crear Reservas (IPs Fijas)</h6>
+                <p>Reservations → New Reservation → Ingresar nombre, IP deseada y MAC address del cliente. Útil para impresoras y servidores con DHCP.</p>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">05</div>
+              <div class="step-content">
+                <h6>Activar el scope y autorizar el servidor</h6>
+                <p>Clic derecho sobre el scope → Activate. Luego autorizar el servidor en el dominio AD: Clic derecho en el servidor → Authorize.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cisco DHCP -->
+        <div id="dhcp-cisco">
+          <h5 class="mb-3" style="font-size:1rem;">🔧 DHCP en Cisco IOS</h5>
+          <div class="code-block">
+            <div class="code-header">
+              <div class="code-dots">
+                <span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span>
+              </div>
+              <span class="code-lang">cisco ios</span>
+            </div>
+            <div class="code-body">
+<span class="cmt">! Excluir IPs estáticas del pool</span>
+<span class="kw">ip dhcp excluded-address</span> <span class="num">192.168.20.1</span> <span class="num">192.168.20.9</span>
+<span class="kw">ip dhcp excluded-address</span> <span class="num">192.168.20.200</span> <span class="num">192.168.20.254</span>
+
+<span class="cmt">! Crear el pool DHCP</span>
+<span class="kw">ip dhcp pool</span> <span class="str">VLAN20-USUARIOS</span>
+ <span class="kw">network</span> <span class="num">192.168.20.0</span> <span class="num">255.255.255.0</span>
+ <span class="kw">default-router</span> <span class="num">192.168.20.1</span>
+ <span class="kw">dns-server</span> <span class="num">192.168.30.10</span> <span class="num">8.8.8.8</span>
+ <span class="kw">domain-name</span> <span class="str">empresa.local</span>
+ <span class="kw">lease</span> <span class="num">7</span>
+
+<span class="cmt">! Verificar asignaciones activas</span>
+<span class="fn">show ip dhcp binding</span>
+<span class="fn">show ip dhcp pool</span>
+<span class="fn">show ip dhcp conflict</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Configuración Router ──────────────────── -->
+      <section id="router-config" class="mb-5">
+        <div class="section-divider">
+          <p class="section-label mb-0">03</p>
+          <h2 class="section-title ms-3">Configuración de Routers Cisco</h2>
+        </div>
+
+        <div class="wiki-alert warn mb-4">
+          <span class="alert-icon">⚠️</span>
+          <div>Realizar siempre un <code style="color:var(--accent);">copy running-config startup-config</code> al finalizar los cambios. Guardar backup previo en el servidor TFTP.</div>
+        </div>
+
+        <div class="code-block mb-4">
+          <div class="code-header">
+            <div class="code-dots">
+              <span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span>
+            </div>
+            <span class="code-lang">cisco ios — configuración básica inicial</span>
+          </div>
+          <div class="code-body">
+<span class="cmt">! === CONFIGURACIÓN BÁSICA ROUTER CISCO IOS ===</span>
+<span class="kw">enable</span>
+<span class="kw">configure terminal</span>
+
+<span class="cmt">! Hostname y dominio</span>
+<span class="kw">hostname</span> <span class="str">CORE-RTR-01</span>
+<span class="kw">ip domain-name</span> <span class="str">empresa.local</span>
+
+<span class="cmt">! Banner de aviso legal</span>
+<span class="kw">banner motd</span> <span class="str">^
+  ACCESO RESTRINGIDO - Solo personal autorizado
+  Departamento de IT - NextGen Corp
+^</span>
+
+<span class="cmt">! Configuración de contraseñas</span>
+<span class="kw">enable secret</span> <span class="str">T0p$ecr3tP@ss</span>
+<span class="kw">service password-encryption</span>
+<span class="kw">security passwords min-length</span> <span class="num">10</span>
+
+<span class="cmt">! Interfaz WAN (hacia ISP)</span>
+<span class="kw">interface</span> <span class="str">GigabitEthernet0/0</span>
+ <span class="kw">description</span> <span class="str">## UPLINK ISP ##</span>
+ <span class="kw">ip address dhcp</span>
+ <span class="kw">ip nat outside</span>
+ <span class="kw">no shutdown</span>
+
+<span class="cmt">! Interfaz LAN trunk hacia switch core</span>
+<span class="kw">interface</span> <span class="str">GigabitEthernet0/1</span>
+ <span class="kw">description</span> <span class="str">## TRUNK TO CORE-SW-01 ##</span>
+ <span class="kw">no shutdown</span>
+
+<span class="cmt">! Sub-interfaces para Inter-VLAN routing</span>
+<span class="kw">interface</span> <span class="str">GigabitEthernet0/1.10</span>
+ <span class="kw">encapsulation dot1Q</span> <span class="num">10</span>
+ <span class="kw">ip address</span> <span class="num">192.168.10.1</span> <span class="num">255.255.255.0</span>
+ <span class="kw">ip nat inside</span>
+
+<span class="kw">interface</span> <span class="str">GigabitEthernet0/1.20</span>
+ <span class="kw">encapsulation dot1Q</span> <span class="num">20</span>
+ <span class="kw">ip address</span> <span class="num">192.168.20.1</span> <span class="num">255.255.255.0</span>
+ <span class="kw">ip nat inside</span>
+
+<span class="cmt">! NAT Overload (PAT) hacia Internet</span>
+<span class="kw">ip nat inside source list</span> <span class="num">1</span> <span class="kw">interface</span> <span class="str">GigabitEthernet0/0</span> <span class="kw">overload</span>
+<span class="kw">access-list</span> <span class="num">1</span> <span class="kw">permit</span> <span class="num">192.168.0.0</span> <span class="num">0.0.255.255</span>
+
+<span class="cmt">! SSH Hardening</span>
+<span class="kw">crypto key generate rsa modulus</span> <span class="num">2048</span>
+<span class="kw">ip ssh version</span> <span class="num">2</span>
+<span class="kw">ip ssh time-out</span> <span class="num">60</span>
+<span class="kw">ip ssh authentication-retries</span> <span class="num">3</span>
+<span class="kw">line vty</span> <span class="num">0 4</span>
+ <span class="kw">transport input ssh</span>
+ <span class="kw">login local</span>
+
+<span class="cmt">! Guardar configuración</span>
+<span class="fn">end</span>
+<span class="fn">copy running-config startup-config</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── OSPF ─────────────────────────────────── -->
+      <section id="ospf" class="mb-5">
+        <div class="section-divider">
+          <p class="section-label mb-0">04</p>
+          <h2 class="section-title ms-3">Protocolo OSPF</h2>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots">
+              <span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span>
+            </div>
+            <span class="code-lang">cisco ios — ospf area 0</span>
+          </div>
+          <div class="code-body">
+<span class="cmt">! Configurar OSPF en área backbone</span>
+<span class="kw">router ospf</span> <span class="num">1</span>
+ <span class="kw">router-id</span> <span class="num">1.1.1.1</span>
+ <span class="kw">network</span> <span class="num">192.168.10.0</span> <span class="num">0.0.0.255</span> <span class="kw">area</span> <span class="num">0</span>
+ <span class="kw">network</span> <span class="num">192.168.20.0</span> <span class="num">0.0.0.255</span> <span class="kw">area</span> <span class="num">0</span>
+ <span class="kw">network</span> <span class="num">192.168.30.0</span> <span class="num">0.0.0.255</span> <span class="kw">area</span> <span class="num">0</span>
+ <span class="kw">passive-interface default</span>
+ <span class="kw">no passive-interface</span> <span class="str">GigabitEthernet0/1</span>
+
+<span class="cmt">! Verificación</span>
+<span class="fn">show ip ospf neighbor</span>
+<span class="fn">show ip route ospf</span>
+<span class="fn">show ip ospf database</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Scripts de Red ────────────────────────── -->
+      <section id="scripts-net" class="mb-5">
+        <div class="section-divider">
+          <p class="section-label mb-0">05</p>
+          <h2 class="section-title ms-3">Scripts PowerShell — Red</h2>
+        </div>
+
+        <div class="code-block mb-4">
+          <div class="code-header">
+            <div class="code-dots">
+              <span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span>
+            </div>
+            <span class="code-lang">powershell — inventario de red</span>
+          </div>
+          <div class="code-body">
+<span class="cmt"># ============================================
+# Script: Get-NetworkInventory.ps1
+# Autor: Equipo IT NextGen
+# Versión: 1.3
+# ============================================</span>
+
+<span class="kw">param</span>(
+    [<span class="fn">string</span>]<span class="str">$Subnet</span> = <span class="str">"192.168.20"</span>,
+    [<span class="fn">int</span>]<span class="str">$StartHost</span> = <span class="num">1</span>,
+    [<span class="fn">int</span>]<span class="str">$EndHost</span> = <span class="num">254</span>,
+    [<span class="fn">string</span>]<span class="str">$OutputPath</span> = <span class="str">"C:\IT\Reports\NetworkScan.csv"</span>
+)
+
+<span class="str">$Results</span> = @()
+
+<span class="kw">foreach</span> (<span class="str">$i</span> <span class="kw">in</span> <span class="str">$StartHost</span>..<span class="str">$EndHost</span>) {
+    <span class="str">$ip</span> = <span class="str">"$Subnet.$i"</span>
+    <span class="str">$ping</span> = <span class="fn">Test-Connection</span> -ComputerName <span class="str">$ip</span> -Count <span class="num">1</span> -Quiet
+
+    <span class="kw">if</span> (<span class="str">$ping</span>) {
+        <span class="kw">try</span> {
+            <span class="str">$hostname</span> = (<span class="fn">Resolve-DnsName</span> <span class="str">$ip</span> -ErrorAction Stop).NameHost
+        } <span class="kw">catch</span> {
+            <span class="str">$hostname</span> = <span class="str">"N/A"</span>
+        }
+
+        <span class="str">$Results</span> += [<span class="fn">PSCustomObject</span>]@{
+            IP        = <span class="str">$ip</span>
+            Hostname  = <span class="str">$hostname</span>
+            Status    = <span class="str">"Online"</span>
+            Timestamp = <span class="fn">Get-Date</span> -Format <span class="str">"yyyy-MM-dd HH:mm"</span>
+        }
+    }
+}
+
+<span class="str">$Results</span> | <span class="fn">Export-Csv</span> -Path <span class="str">$OutputPath</span> -NoTypeInformation
+<span class="fn">Write-Host</span> <span class="str">"Escaneo completo. Hosts activos: $($Results.Count)"</span> -ForegroundColor Green
+          </div>
+        </div>
+
+        <!-- Topología placeholder -->
+        <div id="topologia">
+          <h5 class="mb-3" style="font-size:1rem;">📐 Diagrama de Topología</h5>
+          <div class="topo-placeholder">
+            <div class="topo-icon">🗺️</div>
+            <span>[ PLACEHOLDER — Diagrama de topología de red ]</span>
+            <span style="font-size:0.72rem;color:var(--text-muted);">Insertar imagen o diagrama Visio/Draw.io aquí</span>
+            <a href="#" class="btn-wiki mt-2" style="font-size:0.75rem;">+ Subir diagrama</a>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /col-9 -->
+  </div><!-- /row -->
+</div>
+
+<!-- FOOTER -->
+<footer class="wiki-footer z-1">
+  <div class="container-xl">
+    <div class="row align-items-start g-4 mb-3">
+      <div class="col-md-4">
+        <div class="footer-brand mb-2">NextGen <span class="text-accent">Wiki-IT</span></div>
+        <p style="color:var(--text-muted);font-size:0.82rem;">Portal de documentación técnica del Departamento de IT. Uso interno.</p>
+      </div>
+      <div class="col-md-4">
+        <p style="color:var(--text-secondary);font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:0.75rem;">Secciones</p>
+        <div class="footer-links flex-column">
+          <a href="index.html">Inicio</a>
+          <a href="redes.html">Gestión de Redes</a>
+          <a href="sistemas.html">Sistemas Operativos</a>
+          <a href="seguridad.html">Seguridad e Inventario</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-copy d-flex justify-content-between flex-wrap gap-2">
+      <span>© 2026 NextGen Wiki-IT · Departamento de IT · Uso interno</span>
+      <span class="text-accent">MÓDULO: REDES · BUILD: 3.1.0</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Highlight active sidebar link on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const sideLinks = document.querySelectorAll('.sidebar-link');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 120) current = s.id;
+    });
+    sideLinks.forEach(l => {
+      l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+    });
+  });
+</script>
+</body>
+</html>

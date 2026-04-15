@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sistemas Operativos — NextGen Wiki-IT</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="assets/css/wiki.css"/>
+  <style>
+    /* Sidebar (same pattern) */
+    .sidebar { position: sticky; top: 72px; height: calc(100vh - 80px); overflow-y: auto; }
+    .sidebar::-webkit-scrollbar { width: 3px; }
+    .sidebar-label { font-family: 'Share Tech Mono',monospace; font-size:.65rem; color:var(--text-muted); letter-spacing:2.5px; text-transform:uppercase; margin-bottom:.6rem; padding:0 .5rem; }
+    .sidebar-link { display:block; padding:.45rem .75rem; color:var(--text-secondary); font-size:.83rem; border-radius:var(--radius-sm); border-left:2px solid transparent; transition:all var(--transition); text-decoration:none; }
+    .sidebar-link:hover,.sidebar-link.active { color:var(--accent); border-left-color:var(--accent); background:rgba(0,212,255,0.06); }
+
+    /* OS Tab selector */
+    .os-tabs { display:flex; gap:8px; margin-bottom:2rem; flex-wrap:wrap; }
+    .os-tab {
+      padding:.55rem 1.25rem;
+      border:1px solid var(--border);
+      border-radius:var(--radius-sm);
+      font-size:.82rem; font-weight:600;
+      cursor:pointer; color:var(--text-secondary);
+      background:transparent;
+      transition:all var(--transition);
+      font-family:'Barlow',sans-serif;
+      text-transform:uppercase; letter-spacing:.8px;
+    }
+    .os-tab.active,.os-tab:hover { border-color:var(--accent); color:var(--accent); background:rgba(0,212,255,0.07); }
+
+    /* Checklist */
+    .checklist { list-style:none; padding:0; margin:0; }
+    .checklist li {
+      padding:.6rem 0;
+      border-bottom:1px solid var(--border);
+      display:flex; align-items:flex-start; gap:10px;
+      font-size:.875rem;
+    }
+    .checklist li:last-child { border-bottom:none; }
+    .check-icon { color:var(--accent-green); flex-shrink:0; margin-top:2px; }
+    .check-opt  { color:var(--accent-yellow); flex-shrink:0; margin-top:2px; }
+
+    /* Command reference table */
+    .cmd-row { font-family:'Share Tech Mono',monospace; font-size:.8rem; }
+    .cmd-cell { color:var(--accent); }
+    .desc-cell { color:var(--text-secondary); font-family:'Barlow',sans-serif; font-size:.83rem; }
+
+    /* Accordion (custom) */
+    .wiki-accordion { border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
+    .wiki-acc-item { border-bottom:1px solid var(--border); }
+    .wiki-acc-item:last-child { border-bottom:none; }
+    .wiki-acc-header {
+      width:100%; background:var(--bg-card); border:none;
+      padding:1rem 1.25rem; text-align:left;
+      color:var(--text-primary); font-family:'Barlow Condensed',sans-serif;
+      font-size:1rem; font-weight:700; cursor:pointer;
+      display:flex; justify-content:space-between; align-items:center;
+      transition:background var(--transition);
+    }
+    .wiki-acc-header:hover { background:var(--bg-card-hover); }
+    .wiki-acc-header .arrow { transition:transform var(--transition); color:var(--accent); }
+    .wiki-acc-header.open .arrow { transform:rotate(90deg); }
+    .wiki-acc-body { display:none; padding:1.25rem; background:var(--bg-surface); }
+    .wiki-acc-body.open { display:block; }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="wiki-navbar navbar navbar-expand-lg">
+  <div class="container-xl">
+    <a class="navbar-brand" href="index.html">
+      <div class="brand-icon"></div>
+      NextGen<span class="brand-tag">WIKI-IT</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav ms-4 me-auto">
+        <li class="nav-item"><a class="nav-link" href="index.html">Inicio</a></li>
+        <li class="nav-item"><a class="nav-link" href="redes.html">Redes</a></li>
+        <li class="nav-item"><a class="nav-link active" href="sistemas.html">Sistemas&nbsp;OS</a></li>
+        <li class="nav-item"><a class="nav-link" href="seguridad.html">Seguridad</a></li>
+      </ul>
+      <div class="nav-status d-none d-lg-flex me-3">
+        <span class="status-dot"></span>SISTEMA ONLINE
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header z-1">
+  <div class="container-xl">
+    <div class="corner-deco"></div>
+    <p class="page-header-tag">Sistemas Operativos · módulo 02</p>
+    <h1>Sistemas <span class="accent-text">Operativos</span></h1>
+    <p class="lead">Guías de instalación, administración y scripting para Windows Server, Linux y entornos de virtualización.</p>
+    <div class="d-flex gap-2 mt-3">
+      <span class="badge-wiki badge-info">Windows Server</span>
+      <span class="badge-wiki badge-warn">Linux</span>
+      <span class="badge-wiki badge-success">PowerShell</span>
+      <span class="badge-wiki badge-info">Bash</span>
+      <span class="badge-wiki badge-warn">VMware</span>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="container-xl z-1 pb-5">
+  <div class="row g-4">
+
+    <!-- SIDEBAR -->
+    <div class="col-lg-3 d-none d-lg-block">
+      <div class="sidebar">
+        <div class="mb-4">
+          <div class="sidebar-label">Windows Server</div>
+          <a href="#ws-install" class="sidebar-link active">Instalación WS 2022</a>
+          <a href="#ws-roles" class="sidebar-link">Roles y características</a>
+          <a href="#ad-setup" class="sidebar-link">Active Directory</a>
+          <a href="#ws-cmds" class="sidebar-link">Comandos CMD/PS</a>
+        </div>
+        <div class="mb-4">
+          <div class="sidebar-label">Linux</div>
+          <a href="#linux-install" class="sidebar-link">Instalación Ubuntu</a>
+          <a href="#linux-cmds" class="sidebar-link">Comandos esenciales</a>
+          <a href="#linux-services" class="sidebar-link">Gestión de servicios</a>
+          <a href="#linux-bash" class="sidebar-link">Scripts Bash</a>
+        </div>
+        <div class="mb-4">
+          <div class="sidebar-label">PowerShell</div>
+          <a href="#ps-intro" class="sidebar-link">Introducción PS</a>
+          <a href="#ps-library" class="sidebar-link">Biblioteca scripts</a>
+          <a href="#ps-ad" class="sidebar-link">Scripts AD</a>
+        </div>
+        <div class="mb-4">
+          <div class="sidebar-label">Virtualización</div>
+          <a href="#vmware" class="sidebar-link">VMware ESXi</a>
+          <a href="#hyperv" class="sidebar-link">Hyper-V</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="col-lg-9">
+
+      <!-- ── INSTALACIÓN WINDOWS SERVER ─────────────── -->
+      <section id="ws-install" class="mb-5">
+        <div class="section-divider">
+          <p class="section-label mb-0">01</p>
+          <h2 class="section-title ms-3">Instalación Windows Server 2022</h2>
+        </div>
+
+        <div class="wiki-alert info mb-4">
+          <span class="alert-icon">ℹ️</span>
+          <div>Verificar requisitos previos: mínimo 2 GB RAM (16 GB recomendado), 32 GB disco para SO, NIC Gigabit. Tener a mano clave de licencia y configuración de red.</div>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <div class="wiki-card" style="--card-accent:var(--accent);">
+              <div class="card-icon-wrap">🖥️</div>
+              <h5>Requisitos Mínimos</h5>
+              <ul class="checklist">
+                <li><span class="check-icon">✓</span>CPU: 1.4 GHz 64-bit</li>
+                <li><span class="check-icon">✓</span>RAM: 512 MB (Desktop Experience: 2 GB)</li>
+                <li><span class="check-icon">✓</span>Disco: 32 GB mínimo</li>
+                <li><span class="check-icon">✓</span>NIC Gigabit Ethernet</li>
+                <li><span class="check-option">⊙</span>TPM 2.0 (recomendado)</li>
+              </ul>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="wiki-card" style="--card-accent:var(--accent-green);">
+              <div class="card-icon-wrap">📋</div>
+              <h5>Ediciones Disponibles</h5>
+              <ul class="checklist">
+                <li><span class="check-icon">✓</span><strong>Standard</strong> — hasta 2 VMs</li>
+                <li><span class="check-icon">✓</span><strong>Datacenter</strong> — VMs ilimitadas</li>
+                <li><span class="check-icon">✓</span><strong>Essentials</strong> — hasta 25 usuarios</li>
+                <li><span class="check-option">⊙</span>Core vs. Desktop Experience</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accordion pasos instalación -->
+        <div id="ws-roles" class="wiki-accordion">
+          <div class="wiki-acc-item">
+            <button class="wiki-acc-header open" onclick="toggleAcc(this)">
+              <span>1. Preparar medio de instalación y arranque</span>
+              <span class="arrow">▶</span>
+            </button>
+            <div class="wiki-acc-body open">
+              <p class="text-muted-wiki" style="font-size:.875rem;">Descargar la ISO desde el Volume Licensing Service Center (VLSC). Crear USB booteable con Rufus (GPT + UEFI). Verificar hash SHA256 con: <code style="color:var(--accent);">Get-FileHash .\WS2022.iso -Algorithm SHA256</code></p>
+            </div>
+          </div>
+          <div class="wiki-acc-item">
+            <button class="wiki-acc-header" onclick="toggleAcc(this)">
+              <span>2. Configuración de BIOS/UEFI</span>
+              <span class="arrow">▶</span>
+            </button>
+            <div class="wiki-acc-body">
+              <p class="text-muted-wiki" style="font-size:.875rem;">Habilitar: Secure Boot, VT-x / AMD-V (virtualización), Hyperthreading. Boot order: USB primero. Deshabilitar CSM si se usa GPT/UEFI puro.</p>
+            </div>
+          </div>
+          <div class="wiki-acc-item">
+            <button class="wiki-acc-header" onclick="toggleAcc(this)">
+              <span>3. Proceso de instalación</span>
+              <span class="arrow">▶</span>
+            </button>
+            <div class="wiki-acc-body">
+              <p class="text-muted-wiki" style="font-size:.875rem;">Seleccionar "Windows Server 2022 Standard (Desktop Experience)", aceptar licencia, elegir "Custom: Install Windows only", particionar disco (100 MB EFI + 16 GB MSR + restante C:). Instalación desatendida disponible con fichero <code style="color:var(--accent);">unattend.xml</code>.</p>
+            </div>
+          </div>
+          <div class="wiki-acc-item">
+            <button class="wiki-acc-header" onclick="toggleAcc(this)">
+              <span>4. Configuración post-instalación</span>
+              <span class="arrow">▶</span>
+            </button>
+            <div class="wiki-acc-body">
+              <p class="text-muted-wiki" style="font-size:.875rem;">Cambiar nombre del equipo, configurar IP estática, habilitar RDP, instalar actualizaciones (Windows Update), instalar VMware Tools / Guest Additions, configurar NTP y unir al dominio si procede.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── LINUX ──────────────────────────────────── -->
+      <section id="linux-install" class="mb-5">
+        <div class="section-divider">
+          <p class="section-label mb-0">02</p>
+          <h2 class="section-title ms-3">Linux — Ubuntu Server 24.04 LTS</h2>
+        </div>
+
+        <div class="code-block mb-4">
+          <div class="code-header">
+            <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+            <span class="code-lang">bash — post-install setup</span>
+          </div>
+          <div class="code-body">
+<span class="cmt">#!/bin/bash
+# Script: ubuntu-post-install.sh
+# Propósito: Configuración inicial servidor Ubuntu 24.04
+# Ejecutar como root o con sudo</span>
+
+<span class="cmt"># Actualizar sistema</span>
+<span class="fn">apt update</span> && <span class="fn">apt upgrade</span> -y
+
+<span class="cmt"># Instalar herramientas esenciales</span>
+<span class="fn">apt install</span> -y \
+    vim curl wget git htop net-tools \
+    openssh-server ufw fail2ban \
+    sysstat nmap traceroute
+
+<span class="cmt"># Configurar hostname</span>
+<span class="fn">hostnamectl set-hostname</span> srv-linux-01
+<span class="fn">echo</span> <span class="str">"192.168.30.20 srv-linux-01.empresa.local srv-linux-01"</span> >> /etc/hosts
+
+<span class="cmt"># Hardening SSH (/etc/ssh/sshd_config)</span>
+<span class="fn">sed</span> -i <span class="str">'s/#PermitRootLogin yes/PermitRootLogin no/'</span> /etc/ssh/sshd_config
+<span class="fn">sed</span> -i <span class="str">'s/#PasswordAuthentication yes/PasswordAuthentication no/'</span> /etc/ssh/sshd_config
+<span class="fn">sed</span> -i <span class="str">'s/X11Forwarding yes/X11Forwarding no/'</span> /etc/ssh/sshd_config
+
+<span class="cmt"># Configurar UFW (firewall)</span>
+<span class="fn">ufw default deny incoming</span>
+<span class="fn">ufw default allow outgoing</span>
+<span class="fn">ufw allow from</span> 192.168.10.0/24 <span class="fn">to any port</span> 22
+<span class="fn">ufw allow</span> 80/tcp
+<span class="fn">ufw allow</span> 443/tcp
+<span class="fn">ufw --force enable</span>
+
+<span class="cmt"># Crear usuario admin local</span>
+<span class="fn">useradd</span> -m -s /bin/bash itadmin
+<span class="fn">usermod</span> -aG sudo itadmin
+<span class="fn">echo</span> <span class="str">"itadmin ALL=(ALL) NOPASSWD:ALL"</span> >> /etc/sudoers.d/itadmin
+
+<span class="fn">systemctl restart</span> ssh
+<span class="fn">echo</span> <span class="str">"[OK] Configuración inicial completada"</span>
+          </div>
+        </div>
+
+        <!-- Comandos esenciales Linux -->
+        <div id="linux-cmds">
+          <h5 class="mb-3" style="font-size:1rem;">📚 Referencia de Comandos Esenciales</h5>
+          <div class="table-wrap">
+            <table class="wiki-table">
+              <thead>
+                <tr><th>Comando</th><th>Descripción</th><th>Categoría</th></tr>
+              </thead>
+              <tbody>
+                <tr class="cmd-row"><td class="cmd-cell">ss -tulnp</td><td class="desc-cell">Listar puertos en escucha y procesos</td><td><span class="badge-wiki badge-info">Red</span></td></tr>
+                <tr class="cmd-row"><td class="cmd-cell">journalctl -u nginx -f</td><td class="desc-cell">Ver logs en tiempo real de un servicio</td><td><span class="badge-wiki badge-warn">Logs</span></td></tr>
+                <tr class="cmd-row"><td class="cmd-cell">df -hT</td><td class="desc-cell">Espacio en disco con tipo de filesystem</td><td><span class="badge-wiki badge-success">Disco</span></td></tr>
+                <tr class="cmd-row"><td class="cmd-cell">lsblk -o NAME,SIZE,TYPE,MOUNTPOINT</td><td class="desc-cell">Árbol de dispositivos de bloque</td><td><span class="badge-wiki badge-success">Disco</span></td></tr>
+                <tr class="cmd-row"><td class="cmd-cell">top / htop / btop</td><td class="desc-cell">Monitor de procesos interactivo</td><td><span class="badge-wiki badge-info">Sistema</span></td></tr>
+                <tr class="cmd-row"><td class="cmd-cell">find / -name "*.log" -mtime +30</td><td class="desc-cell">Buscar logs con más de 30 días</td><td><span class="badge-wiki badge-warn">Archivos</span></td></tr>
+                <tr class="cmd-row"><td class="cmd-cell">tar -czf backup.tar.gz /ruta</td><td class="desc-cell">Comprimir directorio en .tar.gz</td><td><span class="badge-wiki badge-success">Backup</span></td></tr>
+                <tr class="cmd-row"><td class="cmd-cell">grep -rn "error" /var/log/ --include="*.log"</td><td class="desc-cell">Búsqueda recursiva en logs</td><td><span class="badge-wiki badge-warn">Logs</span></td></tr>
+                <tr class="cmd-row"><td class="cmd-cell">crontab -e</td><td class="desc-cell">Editar tareas programadas del usuario</td><td><span class="badge-wiki badge-info">Automatización</span></td></tr>
+                <tr class="cmd-row"><td class="cmd-cell">rsync -avz --delete src/ dest/</td><td class="desc-cell">Sincronización de directorios incremental</td><td><span class="badge-wiki badge-success">Backup</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── POWERSHELL ─────────────────────────────── -->
+      <section id="ps-intro" class="mb-5">
+        <div class="section-divider">
+          <p class="section-label mb-0">03</p>
+          <h2 class="section-title ms-3">Biblioteca de Scripts PowerShell</h2>
+        </div>
+
+        <div class="wiki-alert ok mb-4">
+          <span class="alert-icon">✅</span>
+          <div>Todos los scripts requieren política de ejecución <code style="color:var(--accent)">RemoteSigned</code>. Ejecutar primero: <code style="color:var(--accent)">Set-ExecutionPolicy RemoteSigned -Scope LocalMachine</code></div>
+        </div>
+
+        <div id="ps-ad">
+          <div class="code-block mb-4">
+            <div class="code-header">
+              <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+              <span class="code-lang">powershell — gestión de active directory</span>
+            </div>
+            <div class="code-body">
+<span class="cmt"># ============================================
+# Script: AD-UserManagement.ps1
+# Descripción: Gestión masiva de usuarios AD
+# Requiere: Módulo RSAT-AD-PowerShell
+# ============================================</span>
+
+<span class="cmt"># Importar módulo AD</span>
+<span class="kw">Import-Module</span> ActiveDirectory
+
+<span class="cmt"># ── Crear usuario desde CSV ──────────────────</span>
+<span class="kw">function</span> <span class="fn">New-BulkADUsers</span> {
+    <span class="kw">param</span>([<span class="fn">string</span>]<span class="str">$CsvPath</span>)
+
+    <span class="str">$usuarios</span> = <span class="fn">Import-Csv</span> <span class="str">$CsvPath</span>
+
+    <span class="kw">foreach</span> (<span class="str">$u</span> <span class="kw">in</span> <span class="str">$usuarios</span>) {
+        <span class="str">$password</span> = <span class="fn">ConvertTo-SecureString</span> <span class="str">"P@ssw0rd2026!"</span> -AsPlainText -Force
+
+        <span class="fn">New-ADUser</span> `
+            -Name <span class="str">"$($u.Apellido), $($u.Nombre)"</span> `
+            -GivenName <span class="str">$u.Nombre</span> `
+            -Surname <span class="str">$u.Apellido</span> `
+            -SamAccountName <span class="str">$u.Usuario</span> `
+            -UserPrincipalName <span class="str">"$($u.Usuario)@empresa.local"</span> `
+            -Path <span class="str">"OU=Usuarios,DC=empresa,DC=local"</span> `
+            -Department <span class="str">$u.Departamento</span> `
+            -AccountPassword <span class="str">$password</span> `
+            -ChangePasswordAtLogon <span class="str">$true</span> `
+            -Enabled <span class="str">$true</span>
+
+        <span class="fn">Write-Host</span> <span class="str">"[+] Creado: $($u.Usuario)"</span> -ForegroundColor Green
+    }
+}
+
+<span class="cmt"># ── Reporte de usuarios inactivos ────────────</span>
+<span class="kw">function</span> <span class="fn">Get-InactiveUsers</span> {
+    <span class="kw">param</span>([<span class="fn">int</span>]<span class="str">$DaysInactive</span> = <span class="num">90</span>)
+
+    <span class="str">$cutoff</span> = (<span class="fn">Get-Date</span>).AddDays(-<span class="str">$DaysInactive</span>)
+
+    <span class="fn">Get-ADUser</span> -Filter { LastLogonDate -lt <span class="str">$cutoff</span> -and Enabled -eq <span class="str">$true</span> } `
+        -Properties LastLogonDate, Department, Manager |
+    <span class="fn">Select-Object</span> Name, SamAccountName, Department, LastLogonDate |
+    <span class="fn">Sort-Object</span> LastLogonDate |
+    <span class="fn">Export-Csv</span> <span class="str">"C:\IT\Reports\InactiveUsers_$(Get-Date -f 'yyyyMMdd').csv"</span> -NoTypeInformation
+
+    <span class="fn">Write-Host</span> <span class="str">"Reporte generado."</span> -ForegroundColor Cyan
+}
+
+<span class="cmt"># ── Bloquear usuario comprometido ────────────</span>
+<span class="kw">function</span> <span class="fn">Disable-CompromisedUser</span> {
+    <span class="kw">param</span>([<span class="fn">string</span>]<span class="str">$Username</span>)
+
+    <span class="fn">Disable-ADAccount</span> -Identity <span class="str">$Username</span>
+    <span class="fn">Clear-ADAccountExpiration</span> -Identity <span class="str">$Username</span>
+    <span class="fn">Get-ADUser</span> <span class="str">$Username</span> | <span class="fn">Move-ADObject</span> -TargetPath <span class="str">"OU=Bloqueados,DC=empresa,DC=local"</span>
+
+    <span class="fn">Write-Warning</span> <span class="str">"Usuario $Username BLOQUEADO y movido a OU Bloqueados."</span>
+}
+
+<span class="cmt"># === Uso ===
+# New-BulkADUsers -CsvPath "C:\IT\nuevos_usuarios.csv"
+# Get-InactiveUsers -DaysInactive 60
+# Disable-CompromisedUser -Username "jhacker"</span>
+            </div>
+          </div>
+
+          <!-- Más scripts placeholder -->
+          <div class="row g-3" id="ps-library">
+            <div class="col-md-6">
+              <div class="wiki-card">
+                <h5 class="mb-1">📄 Get-ServerHealth.ps1</h5>
+                <p>Monitor de salud de servidores: CPU, RAM, disco, servicios críticos. Envío de alertas por email.</p>
+                <div class="d-flex gap-2 mt-3">
+                  <span class="badge-wiki badge-success">Disponible</span>
+                  <a href="#" class="btn-wiki" style="padding:.3rem .8rem;font-size:.72rem;">Ver script</a>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="wiki-card">
+                <h5 class="mb-1">📄 Invoke-BackupValidation.ps1</h5>
+                <p>Verifica integridad de backups, confirma últimas fechas de ejecución y genera reporte de estado.</p>
+                <div class="d-flex gap-2 mt-3">
+                  <span class="badge-wiki badge-success">Disponible</span>
+                  <a href="#" class="btn-wiki" style="padding:.3rem .8rem;font-size:.72rem;">Ver script</a>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="wiki-card">
+                <h5 class="mb-1">📄 Deploy-SoftwarePackage.ps1</h5>
+                <p>Distribución de software por lista de equipos vía WinRM. Compatible con MSI y ejecutables silenciosos.</p>
+                <div class="d-flex gap-2 mt-3">
+                  <span class="badge-wiki badge-warn">En desarrollo</span>
+                  <a href="#" class="btn-wiki" style="padding:.3rem .8rem;font-size:.72rem;">Borrador</a>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="wiki-card">
+                <h5 class="mb-1">📄 [PLACEHOLDER] — Nuevo script</h5>
+                <p>Reservado para script de gestión de GPOs y auditoría de políticas de grupo en el dominio.</p>
+                <div class="d-flex gap-2 mt-3">
+                  <span class="badge-wiki badge-danger">Pendiente</span>
+                  <a href="#" class="btn-wiki btn-wiki-danger" style="padding:.3rem .8rem;font-size:.72rem;">+ Crear</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Virtualización placeholder ────────────── -->
+      <section id="vmware" class="mb-5">
+        <div class="section-divider">
+          <p class="section-label mb-0">04</p>
+          <h2 class="section-title ms-3">Virtualización — VMware & Hyper-V</h2>
+        </div>
+        <div class="wiki-alert warn">
+          <span class="alert-icon">🚧</span>
+          <div><strong>[PLACEHOLDER]</strong> Sección en construcción. Contenido previsto: guías de VMware ESXi 8.x, vCenter, snapshots, plantillas de VM, y configuración de Hyper-V con réplica.</div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="wiki-footer z-1">
+  <div class="container-xl">
+    <div class="row align-items-start g-4 mb-3">
+      <div class="col-md-4">
+        <div class="footer-brand mb-2">NextGen <span class="text-accent">Wiki-IT</span></div>
+        <p style="color:var(--text-muted);font-size:0.82rem;">Portal de documentación técnica del Departamento de IT.</p>
+      </div>
+      <div class="col-md-4">
+        <p style="color:var(--text-secondary);font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:0.75rem;">Secciones</p>
+        <div class="footer-links flex-column">
+          <a href="index.html">Inicio</a>
+          <a href="redes.html">Gestión de Redes</a>
+          <a href="sistemas.html">Sistemas Operativos</a>
+          <a href="seguridad.html">Seguridad e Inventario</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-copy d-flex justify-content-between flex-wrap gap-2">
+      <span>© 2026 NextGen Wiki-IT · Departamento de IT · Uso interno</span>
+      <span class="text-accent">MÓDULO: SISTEMAS-OS · BUILD: 3.1.0</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function toggleAcc(btn) {
+    const body = btn.nextElementSibling;
+    const isOpen = btn.classList.contains('open');
+    document.querySelectorAll('.wiki-acc-header').forEach(b => {
+      b.classList.remove('open');
+      b.nextElementSibling.classList.remove('open');
+    });
+    if (!isOpen) { btn.classList.add('open'); body.classList.add('open'); }
+  }
+
+  const sections = document.querySelectorAll('section[id]');
+  const sideLinks = document.querySelectorAll('.sidebar-link');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) current = s.id; });
+    sideLinks.forEach(l => { l.classList.toggle('active', l.getAttribute('href') === '#' + current); });
+  });
+</script>
+</body>
+</html>

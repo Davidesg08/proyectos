@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NextGen Wiki-IT — Portal de Documentación</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="assets/css/wiki.css"/>
+  <style>
+    /* ── Hero Search ─────────────────────────────────────────── */
+    .hero-section {
+      position: relative;
+      padding: 6rem 0 5rem;
+      overflow: hidden;
+    }
+    .hero-section::after {
+      content: '';
+      position: absolute;
+      bottom: -200px; left: 50%;
+      transform: translateX(-50%);
+      width: 900px; height: 400px;
+      background: radial-gradient(ellipse, rgba(0,212,255,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-pretitle {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 4px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .hero-pretitle::before { content: '>>>'; opacity: 0.6; }
+
+    .hero-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: clamp(3rem, 7vw, 6rem);
+      font-weight: 900;
+      line-height: 0.9;
+      letter-spacing: -1px;
+      margin-bottom: 1.5rem;
+    }
+    .hero-title .line-dim { color: var(--text-muted); }
+    .hero-title .line-accent { color: var(--accent); }
+
+    .hero-desc {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      max-width: 480px;
+      margin-bottom: 2.5rem;
+    }
+
+    /* Search Box */
+    .search-wrap {
+      position: relative;
+      max-width: 640px;
+      margin: 0 auto 3.5rem;
+    }
+    .search-input {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-bright);
+      border-radius: var(--radius-md);
+      padding: 1.1rem 5rem 1.1rem 1.5rem;
+      color: var(--text-primary);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.95rem;
+      outline: none;
+      transition: all var(--transition);
+    }
+    .search-input::placeholder { color: var(--text-muted); }
+    .search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0,212,255,0.1), var(--shadow-glow);
+    }
+    .search-btn {
+      position: absolute; right: 8px; top: 50%;
+      transform: translateY(-50%);
+    }
+    .search-tags {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin-top: 1rem;
+      justify-content: center;
+    }
+    .search-tag {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 3px 10px;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .search-tag:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex; gap: 2.5rem; flex-wrap: wrap;
+      padding: 1.5rem 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 4rem;
+    }
+    .stat-item { display: flex; flex-direction: column; gap: 2px; }
+    .stat-num {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--accent);
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    /* Category Cards */
+    .cat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      height: 100%;
+      display: flex; flex-direction: column;
+      transition: all var(--transition);
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+      overflow: hidden;
+    }
+    .cat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--cat-color, var(--accent));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform var(--transition);
+    }
+    .cat-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-bright);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-card), 0 0 24px rgba(0,0,0,0.3);
+      color: inherit;
+    }
+    .cat-card:hover::before { transform: scaleX(1); }
+
+    .cat-icon {
+      font-size: 2rem;
+      margin-bottom: 1.25rem;
+      width: 60px; height: 60px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+    }
+    .cat-card h4 {
+      font-size: 1.3rem;
+      font-weight: 900;
+      margin-bottom: 0.5rem;
+    }
+    .cat-card p {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      line-height: 1.6;
+      flex: 1;
+    }
+    .cat-footer {
+      margin-top: 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border);
+    }
+    .cat-count {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+    .cat-arrow {
+      color: var(--cat-color, var(--accent));
+      font-size: 1.1rem;
+      transition: transform var(--transition);
+    }
+    .cat-card:hover .cat-arrow { transform: translateX(4px); }
+
+    /* Quick Links */
+    .quick-link {
+      display: flex; align-items: center; gap: 12px;
+      padding: 1rem 1.25rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      transition: all var(--transition);
+      text-decoration: none;
+    }
+    .quick-link:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(0,212,255,0.04);
+    }
+    .quick-link-icon {
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .quick-link-arrow { margin-left: auto; opacity: 0.4; }
+    .quick-link:hover .quick-link-arrow { opacity: 1; }
+
+    /* Recent Activity */
+    .activity-item {
+      display: flex; gap: 1rem; align-items: flex-start;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      margin-top: 7px;
+    }
+    .activity-text { font-size: 0.875rem; }
+    .activity-time {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Hero visual */
+    .hero-visual {
+      position: relative;
+      height: 340px;
+    }
+    .terminal-window {
+      background: #070a10;
+      border: 1px solid var(--border-bright);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.78rem;
+    }
+    .terminal-header {
+      background: #0d1119;
+      padding: 0.6rem 1rem;
+      display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .terminal-body {
+      padding: 1.25rem;
+      line-height: 2;
+    }
+    .t-prompt { color: var(--accent-green); }
+    .t-cmd    { color: var(--text-primary); }
+    .t-out    { color: var(--text-secondary); }
+    .t-ok     { color: var(--accent-green); }
+    .t-warn   { color: var(--accent-yellow); }
+    .t-cursor {
+      display: inline-block;
+      width: 8px; height: 14px;
+      background: var(--accent);
+      vertical-align: middle;
+      animation: blink 1s step-end infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     NAVBAR
+════════════════════════════════════════════════ -->
+<nav class="wiki-navbar navbar navbar-expand-lg">
+  <div class="container-xl">
+    <a class="navbar-brand" href="index.html">
+      <div class="brand-icon"></div>
+      NextGen<span class="brand-tag">WIKI-IT</span>
+    </a>
+    <button class="navbar-toggler" type="button"
+      data-bs-toggle="collapse" data-bs-target="#mainNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav ms-4 me-auto">
+        <li class="nav-item"><a class="nav-link active" href="index.html">Inicio</a></li>
+        <li class="nav-item"><a class="nav-link" href="redes.html">Redes</a></li>
+        <li class="nav-item"><a class="nav-link" href="sistemas.html">Sistemas&nbsp;OS</a></li>
+        <li class="nav-item"><a class="nav-link" href="seguridad.html">Seguridad</a></li>
+      </ul>
+      <div class="nav-status d-none d-lg-flex me-3">
+        <span class="status-dot"></span>SISTEMA ONLINE
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════
+     HERO
+════════════════════════════════════════════════ -->
+<section class="hero-section z-1">
+  <div class="container-xl">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <p class="hero-pretitle">Departamento de IT · Documentación v3.1</p>
+        <h1 class="hero-title">
+          <span class="line-dim">NEXTGEN</span><br>
+          <span class="line-accent">WIKI-IT</span><br>
+          <span class="line-dim">PORTAL</span>
+        </h1>
+        <p class="hero-desc">
+          Base de conocimiento técnico para el equipo IT. Manuales, protocolos,
+          inventarios y scripts organizados para acceso rápido.
+        </p>
+        <div class="d-flex gap-3 flex-wrap">
+          <a href="redes.html" class="btn-wiki btn-wiki-solid">
+            ▶ Explorar Docs
+          </a>
+          <a href="#categorias" class="btn-wiki">
+            Ver Categorías
+          </a>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="terminal-window">
+          <div class="terminal-header">
+            <div class="code-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="code-lang" style="margin-left:auto;">wiki-it v3.1.0</span>
+          </div>
+          <div class="terminal-body">
+            <div><span class="t-prompt">admin@wiki-it:~$</span> <span class="t-cmd">wiki --status</span></div>
+            <div class="t-ok">✔ Documentación cargada correctamente</div>
+            <div class="t-out">&nbsp; Artículos: <span style="color:var(--accent)">247</span> · Actualizados: <span style="color:var(--accent)">14</span></div>
+            <div><span class="t-prompt">admin@wiki-it:~$</span> <span class="t-cmd">wiki --index categorias</span></div>
+            <div class="t-out">&nbsp; [1] Redes &amp; Infraestructura ...... <span class="t-ok">ACTIVO</span></div>
+            <div class="t-out">&nbsp; [2] Sistemas Operativos .......... <span class="t-ok">ACTIVO</span></div>
+            <div class="t-out">&nbsp; [3] Seguridad &amp; Firewalls ....... <span class="t-ok">ACTIVO</span></div>
+            <div class="t-out">&nbsp; [4] Inventario de Hardware ....... <span class="t-warn">SYNC</span></div>
+            <div><span class="t-prompt">admin@wiki-it:~$</span> <span class="t-cursor"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     BUSCADOR CENTRAL
+════════════════════════════════════════════════ -->
+<section class="z-1 pb-2">
+  <div class="container-xl">
+    <div class="search-wrap">
+      <input type="text" class="search-input"
+        placeholder="Buscar en Wiki-IT: dhcp, vlan, firewall, powershell..."/>
+      <button class="btn-wiki btn-wiki-solid search-btn" style="padding:0.45rem 1rem;">
+        ⌕
+      </button>
+      <div class="search-tags">
+        <span class="search-tag">DHCP</span>
+        <span class="search-tag">VLAN</span>
+        <span class="search-tag">Active Directory</span>
+        <span class="search-tag">PowerShell</span>
+        <span class="search-tag">Firewall</span>
+        <span class="search-tag">SSH</span>
+        <span class="search-tag">Linux</span>
+        <span class="search-tag">Backup</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     STATS BAR
+════════════════════════════════════════════════ -->
+<div class="container-xl z-1">
+  <div class="stats-bar">
+    <div class="stat-item">
+      <span class="stat-num">247</span>
+      <span class="stat-label">Artículos</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">12</span>
+      <span class="stat-label">Secciones</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">38</span>
+      <span class="stat-label">Scripts</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">99.8%</span>
+      <span class="stat-label">Uptime</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">v3.1</span>
+      <span class="stat-label">Versión</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     CATEGORÍAS PRINCIPALES
+════════════════════════════════════════════════ -->
+<section id="categorias" class="z-1 mb-5">
+  <div class="container-xl">
+    <div class="section-divider mb-4">
+      <p class="section-label mb-0">// módulos</p>
+      <h2 class="section-title ms-3">Categorías Principales</h2>
+    </div>
+
+    <div class="row g-4">
+      <!-- Servidores -->
+      <div class="col-md-6 col-xl-4">
+        <a href="#" class="cat-card" style="--cat-color:#00d4ff;">
+          <div class="cat-icon">🖥️</div>
+          <h4>Servidores</h4>
+          <p>Documentación de infraestructura, Windows Server, virtualización con VMware/Hyper-V y gestión de Active Directory.</p>
+          <div class="cat-footer">
+            <span class="cat-count">42 artículos · 8 scripts</span>
+            <span class="cat-arrow">→</span>
+          </div>
+        </a>
+      </div>
+      <!-- Redes -->
+      <div class="col-md-6 col-xl-4">
+        <a href="redes.html" class="cat-card" style="--cat-color:#00ff88;">
+          <div class="cat-icon">🌐</div>
+          <h4>Redes</h4>
+          <p>Configuración de routers Cisco, VLANs, protocolos DHCP/DNS, subnetting y diagramas de topología de red.</p>
+          <div class="cat-footer">
+            <span class="cat-count">68 artículos · 15 scripts</span>
+            <span class="cat-arrow">→</span>
+          </div>
+        </a>
+      </div>
+      <!-- Seguridad -->
+      <div class="col-md-6 col-xl-4">
+        <a href="seguridad.html" class="cat-card" style="--cat-color:#ff6b35;">
+          <div class="cat-icon">🛡️</div>
+          <h4>Seguridad</h4>
+          <p>Protocolos de firewall, gestión de certificados, políticas de acceso, auditorías y respuesta a incidentes.</p>
+          <div class="cat-footer">
+            <span class="cat-count">55 artículos · 9 scripts</span>
+            <span class="cat-arrow">→</span>
+          </div>
+        </a>
+      </div>
+      <!-- Sistemas OS -->
+      <div class="col-md-6 col-xl-4">
+        <a href="sistemas.html" class="cat-card" style="--cat-color:#ffd166;">
+          <div class="cat-icon">⚙️</div>
+          <h4>Sistemas Operativos</h4>
+          <p>Guías de instalación Linux/Windows, administración de servicios, scripting con PowerShell y Bash.</p>
+          <div class="cat-footer">
+            <span class="cat-count">51 artículos · 22 scripts</span>
+            <span class="cat-arrow">→</span>
+          </div>
+        </a>
+      </div>
+      <!-- Inventario -->
+      <div class="col-md-6 col-xl-4">
+        <a href="seguridad.html#inventario" class="cat-card" style="--cat-color:#c77dff;">
+          <div class="cat-icon">📦</div>
+          <h4>Inventario</h4>
+          <p>Registro de hardware, licencias de software, garantías y gestión del ciclo de vida de los activos IT.</p>
+          <div class="cat-footer">
+            <span class="cat-count">18 artículos · 3 scripts</span>
+            <span class="cat-arrow">→</span>
+          </div>
+        </a>
+      </div>
+      <!-- Backup -->
+      <div class="col-md-6 col-xl-4">
+        <a href="#" class="cat-card" style="--cat-color:#4cc9f0;">
+          <div class="cat-icon">💾</div>
+          <h4>Backup & Recovery</h4>
+          <p>Estrategias de backup, procedimientos de recuperación ante desastres, retención de datos y pruebas de restauración.</p>
+          <div class="cat-footer">
+            <span class="cat-count">13 artículos · 6 scripts</span>
+            <span class="cat-arrow">→</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     QUICK LINKS + RECENT ACTIVITY
+════════════════════════════════════════════════ -->
+<section class="z-1 mb-5">
+  <div class="container-xl">
+    <div class="row g-4">
+      <!-- Quick Links -->
+      <div class="col-lg-5">
+        <div class="section-divider mb-3">
+          <p class="section-label mb-0">// acceso rápido</p>
+          <h2 class="section-title ms-3" style="font-size:1.4rem;">Accesos Directos</h2>
+        </div>
+        <div class="d-flex flex-column gap-2">
+          <a href="redes.html" class="quick-link">
+            <span class="quick-link-icon">🌐</span>
+            Tutorial DHCP – Configuración completa
+            <span class="quick-link-arrow">→</span>
+          </a>
+          <a href="sistemas.html" class="quick-link">
+            <span class="quick-link-icon">📜</span>
+            Scripts PowerShell – Biblioteca de administración
+            <span class="quick-link-arrow">→</span>
+          </a>
+          <a href="seguridad.html" class="quick-link">
+            <span class="quick-link-icon">🛡️</span>
+            Protocolo de respuesta a incidentes
+            <span class="quick-link-arrow">→</span>
+          </a>
+          <a href="redes.html" class="quick-link">
+            <span class="quick-link-icon">🔌</span>
+            Guía de configuración VLAN Cisco
+            <span class="quick-link-arrow">→</span>
+          </a>
+          <a href="sistemas.html" class="quick-link">
+            <span class="quick-link-icon">🐧</span>
+            Comandos esenciales Linux sysadmin
+            <span class="quick-link-arrow">→</span>
+          </a>
+          <a href="seguridad.html#inventario" class="quick-link">
+            <span class="quick-link-icon">📦</span>
+            Inventario de hardware actualizado
+            <span class="quick-link-arrow">→</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="col-lg-7">
+        <div class="section-divider mb-3">
+          <p class="section-label mb-0">// registro</p>
+          <h2 class="section-title ms-3" style="font-size:1.4rem;">Actividad Reciente</h2>
+        </div>
+        <div class="wiki-card" style="padding:1.25rem 1.5rem;">
+          <div class="activity-item">
+            <div class="activity-dot"></div>
+            <div>
+              <div class="activity-text">Script PowerShell: <span class="text-accent">Get-ADUser-Report.ps1</span> actualizado con nuevos parámetros</div>
+              <div class="activity-time">Hace 2 horas · jmartinez</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--accent-green);"></div>
+            <div>
+              <div class="activity-text">Nuevo artículo añadido: <span class="text-accent">Configuración OSPF en Cisco IOS 15.x</span></div>
+              <div class="activity-time">Hace 5 horas · aperez</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--accent-yellow);"></div>
+            <div>
+              <div class="activity-text">Inventario actualizado: <span class="text-accent">3 nuevos servidores Dell R750</span> registrados</div>
+              <div class="activity-time">Ayer 16:30 · cgomez</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--accent-alt);"></div>
+            <div>
+              <div class="activity-text">Protocolo de firewall revisado: <span class="text-accent">Reglas perimetrales Q1 2026</span></div>
+              <div class="activity-time">Ayer 11:15 · dlopez</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot"></div>
+            <div>
+              <div class="activity-text">Documentación DHCP: <span class="text-accent">Tutorial de scopes y reservas</span> publicado</div>
+              <div class="activity-time">12/04/2026 · aperez</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════ -->
+<footer class="wiki-footer z-1">
+  <div class="container-xl">
+    <div class="row align-items-start g-4 mb-3">
+      <div class="col-md-4">
+        <div class="footer-brand mb-2">NextGen <span class="text-accent">Wiki-IT</span></div>
+        <p style="color:var(--text-muted);font-size:0.82rem;">Portal de documentación técnica del Departamento de IT. Uso interno.</p>
+      </div>
+      <div class="col-md-4">
+        <p style="color:var(--text-secondary);font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:0.75rem;">Secciones</p>
+        <div class="footer-links flex-column">
+          <a href="index.html">Inicio</a>
+          <a href="redes.html">Gestión de Redes</a>
+          <a href="sistemas.html">Sistemas Operativos</a>
+          <a href="seguridad.html">Seguridad e Inventario</a>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <p style="color:var(--text-secondary);font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:0.75rem;">Sistema</p>
+        <div class="footer-links flex-column">
+          <a href="#">Estado del servidor</a>
+          <a href="#">Registro de cambios</a>
+          <a href="#">Contribuir</a>
+          <a href="#">Soporte IT</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-copy d-flex justify-content-between flex-wrap gap-2">
+      <span>© 2026 NextGen Wiki-IT · Departamento de IT · Uso interno</span>
+      <span class="text-accent">SYS: ONLINE · BUILD: 3.1.0-stable</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Search tag click fills input
+  document.querySelectorAll('.search-tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      document.querySelector('.search-input').value = tag.textContent;
+      document.querySelector('.search-input').focus();
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Seguridad e Inventario — NextGen Wiki-IT</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="assets/css/wiki.css"/>
+  <style>
+    /* Sidebar */
+    .sidebar { position:sticky; top:72px; height:calc(100vh - 80px); overflow-y:auto; }
+    .sidebar::-webkit-scrollbar { width:3px; }
+    .sidebar-label { font-family:'Share Tech Mono',monospace; font-size:.65rem; color:var(--text-muted); letter-spacing:2.5px; text-transform:uppercase; margin-bottom:.6rem; padding:0 .5rem; }
+    .sidebar-link { display:block; padding:.45rem .75rem; color:var(--text-secondary); font-size:.83rem; border-radius:var(--radius-sm); border-left:2px solid transparent; transition:all var(--transition); text-decoration:none; }
+    .sidebar-link:hover,.sidebar-link.active { color:var(--accent); border-left-color:var(--accent); background:rgba(0,212,255,0.06); }
+
+    /* Threat level indicator */
+    .threat-level {
+      display:flex; gap:4px; align-items:center;
+    }
+    .threat-bar {
+      width:16px; height:8px; border-radius:2px;
+      background:var(--border);
+    }
+    .threat-bar.active { background:var(--level-color, var(--accent)); }
+
+    /* Firewall rules */
+    .rule-row { display:flex; gap:1rem; align-items:center; padding:.75rem 1.25rem; border-bottom:1px solid var(--border); font-size:.845rem; }
+    .rule-row:last-child { border-bottom:none; }
+    .rule-id { font-family:'Share Tech Mono',monospace; font-size:.72rem; color:var(--text-muted); width:50px; flex-shrink:0; }
+    .rule-action-allow { color:var(--accent-green); font-family:'Share Tech Mono',monospace; font-size:.72rem; font-weight:bold; width:55px; }
+    .rule-action-deny  { color:var(--accent-alt);   font-family:'Share Tech Mono',monospace; font-size:.72rem; font-weight:bold; width:55px; }
+    .rule-proto { color:var(--accent); font-family:'Share Tech Mono',monospace; font-size:.75rem; width:55px; flex-shrink:0; }
+    .rule-desc  { color:var(--text-secondary); flex:1; }
+
+    /* Inventory filter bar */
+    .inv-filter {
+      display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+      margin-bottom:1rem;
+    }
+    .inv-filter input {
+      background:var(--bg-card); border:1px solid var(--border-bright);
+      border-radius:var(--radius-sm); padding:.45rem .9rem;
+      color:var(--text-primary); font-family:'Share Tech Mono',monospace;
+      font-size:.82rem; outline:none; flex:1; min-width:200px;
+      transition:border-color var(--transition);
+    }
+    .inv-filter input:focus { border-color:var(--accent); }
+    .inv-filter select {
+      background:var(--bg-card); border:1px solid var(--border-bright);
+      border-radius:var(--radius-sm); padding:.45rem .9rem;
+      color:var(--text-secondary); font-size:.82rem; outline:none;
+      cursor:pointer;
+    }
+
+    /* Status badge in table */
+    .hw-status { display:flex; align-items:center; gap:6px; }
+    .hw-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+    .hw-dot.ok     { background:var(--accent-green); box-shadow:0 0 5px var(--accent-green); }
+    .hw-dot.warn   { background:var(--accent-yellow); }
+    .hw-dot.off    { background:var(--text-muted); }
+    .hw-dot.danger { background:var(--accent-alt); box-shadow:0 0 5px var(--accent-alt); }
+
+    /* Protocol card */
+    .proto-card {
+      background:var(--bg-card);
+      border:1px solid var(--border);
+      border-left:4px solid var(--proto-color, var(--accent));
+      border-radius:var(--radius-md);
+      padding:1.25rem;
+      margin-bottom:.75rem;
+      transition:background var(--transition);
+    }
+    .proto-card:hover { background:var(--bg-card-hover); }
+    .proto-card h6 { font-size:.9rem; margin-bottom:.4rem; font-weight:700; }
+    .proto-card p  { color:var(--text-secondary); font-size:.845rem; margin:0; }
+
+    /* Severity scale */
+    .severity-item {
+      display:flex; align-items:center; gap:12px;
+      padding:.6rem 0; border-bottom:1px solid var(--border);
+    }
+    .severity-item:last-child { border-bottom:none; }
+    .sev-badge {
+      width:80px; flex-shrink:0; text-align:center;
+      font-family:'Share Tech Mono',monospace; font-size:.7rem;
+      padding:3px 0; border-radius:3px; font-weight:bold;
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="wiki-navbar navbar navbar-expand-lg">
+  <div class="container-xl">
+    <a class="navbar-brand" href="index.html">
+      <div class="brand-icon"></div>
+      NextGen<span class="brand-tag">WIKI-IT</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav ms-4 me-auto">
+        <li class="nav-item"><a class="nav-link" href="index.html">Inicio</a></li>
+        <li class="nav-item"><a class="nav-link" href="redes.html">Redes</a></li>
+        <li class="nav-item"><a class="nav-link" href="sistemas.html">Sistemas&nbsp;OS</a></li>
+        <li class="nav-item"><a class="nav-link active" href="seguridad.html">Seguridad</a></li>
+      </ul>
+      <div class="nav-status d-none d-lg-flex me-3">
+        <span class="status-dot"></span>SISTEMA ONLINE
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header z-1">
+  <div class="container-xl">
+    <div class="corner-deco"></div>
+    <p class="page-header-tag">Seguridad e Inventario · módulo 03</p>
+    <h1>Seguridad & <span class="accent-text">Inventario</span></h1>
+    <p class="lead">Protocolos de firewall, gestión de incidentes, auditoría de accesos e inventario completo de hardware del departamento.</p>
+    <div class="d-flex gap-2 mt-3">
+      <span class="badge-wiki badge-danger">Firewall</span>
+      <span class="badge-wiki badge-warn">Incidentes</span>
+      <span class="badge-wiki badge-info">Auditoría</span>
+      <span class="badge-wiki badge-success">Inventario</span>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="container-xl z-1 pb-5">
+  <div class="row g-4">
+
+    <!-- SIDEBAR -->
+    <div class="col-lg-3 d-none d-lg-block">
+      <div class="sidebar">
+        <div class="mb-4">
+          <div class="sidebar-label">Seguridad</div>
+          <a href="#firewall" class="sidebar-link active">Protocolos Firewall</a>
+          <a href="#reglas-fw" class="sidebar-link">Reglas de acceso</a>
+          <a href="#incidentes" class="sidebar-link">Respuesta a incidentes</a>
+          <a href="#auditoria" class="sidebar-link">Auditoría</a>
+        </div>
+        <div class="mb-4">
+          <div class="sidebar-label">Inventario</div>
+          <a href="#inventario" class="sidebar-link">Hardware</a>
+          <a href="#licencias" class="sidebar-link">Licencias software</a>
+          <a href="#ciclo-vida" class="sidebar-link">Ciclo de vida</a>
+        </div>
+        <div class="mb-4">
+          <div class="sidebar-label">Herramientas</div>
+          <a href="#scripts-sec" class="sidebar-link">Scripts seguridad</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="col-lg-9">
+
+      <!-- ── FIREWALL ────────────────────────────────── -->
+      <section id="firewall" class="mb-5">
+        <div class="section-divider">
+          <p class="section-label mb-0">01</p>
+          <h2 class="section-title ms-3">Protocolos de Firewall</h2>
+        </div>
+
+        <div class="wiki-alert danger mb-4">
+          <span class="alert-icon">🔴</span>
+          <div>Cualquier modificación a reglas del firewall perimetral <strong>debe ser aprobada</strong> por el responsable de seguridad y documentada con ticket en el sistema ITSM antes de su implementación.</div>
+        </div>
+
+        <!-- Política general -->
+        <h5 class="mb-3" style="font-size:1rem;">📋 Política General (Default Deny)</h5>
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <div class="proto-card" style="--proto-color:var(--accent-alt);">
+              <h6>🔴 Política Perimetral — Inbound</h6>
+              <p>Todo el tráfico entrante está DENEGADO por defecto. Solo se permiten los puertos explícitamente autorizados mediante reglas numeradas.</p>
+            </div>
+            <div class="proto-card" style="--proto-color:var(--accent-green);">
+              <h6>🟢 Política Perimetral — Outbound</h6>
+              <p>El tráfico saliente desde la red interna está PERMITIDO por defecto, con excepciones para protocolos de riesgo (Telnet, FTP sin cifrar).</p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="proto-card" style="--proto-color:var(--accent-yellow);">
+              <h6>🟡 Política DMZ — Bidireccional</h6>
+              <p>La DMZ usa reglas explícitas en ambas direcciones. Los servidores en DMZ NO tienen acceso directo a la red interna; todo acceso va por el firewall.</p>
+            </div>
+            <div class="proto-card" style="--proto-color:var(--accent);">
+              <h6>🔵 Gestión (VLAN 10)</h6>
+              <p>Acceso SSH/RDP a dispositivos de red solo desde IPs de la VLAN de administración (192.168.10.0/24). Autenticación doble factor obligatoria.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reglas -->
+        <div id="reglas-fw">
+          <h5 class="mb-3" style="font-size:1rem;">📜 Reglas de Acceso — Firewall Perimetral</h5>
+          <div class="table-wrap mb-4">
+            <div style="background:#0d1119;padding:.6rem 1.25rem;border-bottom:1px solid var(--border);display:flex;gap:1rem;align-items:center;">
+              <span style="font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--text-muted);">FIREWALL-01 · fw.empresa.local · Última actualización: 10/04/2026</span>
+              <span class="badge-wiki badge-success ms-auto">ACTIVO</span>
+            </div>
+            <!-- Header -->
+            <div class="rule-row" style="background:#0d1119;border-bottom:1px solid var(--border-bright);">
+              <span class="rule-id" style="color:var(--accent);font-size:.7rem;">ID</span>
+              <span class="rule-action-allow" style="color:var(--accent);">ACCIÓN</span>
+              <span class="rule-proto">PROTO</span>
+              <span class="rule-desc" style="color:var(--accent);font-family:'Share Tech Mono',monospace;font-size:.7rem;">ORIGEN → DESTINO : PUERTO | DESCRIPCIÓN</span>
+            </div>
+            <!-- Rules -->
+            <div class="rule-row">
+              <span class="rule-id">R-001</span>
+              <span class="rule-action-allow">ALLOW</span>
+              <span class="rule-proto">TCP</span>
+              <span class="rule-desc">ANY → WAN-IP : 443 | HTTPS — Acceso web público</span>
+            </div>
+            <div class="rule-row">
+              <span class="rule-id">R-002</span>
+              <span class="rule-action-allow">ALLOW</span>
+              <span class="rule-proto">TCP</span>
+              <span class="rule-desc">ANY → WAN-IP : 80 | HTTP → redirige a 443</span>
+            </div>
+            <div class="rule-row">
+              <span class="rule-id">R-010</span>
+              <span class="rule-action-allow">ALLOW</span>
+              <span class="rule-proto">TCP</span>
+              <span class="rule-desc">192.168.10.0/24 → ANY : 22 | SSH desde VLAN Mgmt</span>
+            </div>
+            <div class="rule-row">
+              <span class="rule-id">R-011</span>
+              <span class="rule-action-deny">DENY</span>
+              <span class="rule-proto">TCP</span>
+              <span class="rule-desc">ANY → ANY : 22 | SSH — Bloqueo general</span>
+            </div>
+            <div class="rule-row">
+              <span class="rule-id">R-020</span>
+              <span class="rule-action-allow">ALLOW</span>
+              <span class="rule-proto">TCP/UDP</span>
+              <span class="rule-desc">192.168.10.5 → ANY : 53 | DNS Resolver interno</span>
+            </div>
+            <div class="rule-row">
+              <span class="rule-id">R-030</span>
+              <span class="rule-action-allow">ALLOW</span>
+              <span class="rule-proto">TCP</span>
+              <span class="rule-desc">192.168.10.0/24 → ANY : 3389 | RDP desde Mgmt</span>
+            </div>
+            <div class="rule-row">
+              <span class="rule-id">R-031</span>
+              <span class="rule-action-deny">DENY</span>
+              <span class="rule-proto">TCP</span>
+              <span class="rule-desc">ANY → ANY : 3389 | RDP — Bloqueo general</span>
+            </div>
+            <div class="rule-row">
+              <span class="rule-id">R-040</span>
+              <span class="rule-action-deny">DENY</span>
+              <span class="rule-proto">TCP</span>
+              <span class="rule-desc">ANY → ANY : 23 | Telnet — Siempre bloqueado</span>
+            </div>
+            <div class="rule-row">
+              <span class="rule-id">R-050</span>
+              <span class="rule-action-allow">ALLOW</span>
+              <span class="rule-proto">ICMP</span>
+              <span class="rule-desc">192.168.0.0/16 → ANY | Ping interno permitido</span>
+            </div>
+            <div class="rule-row">
+              <span class="rule-id">R-999</span>
+              <span class="rule-action-deny">DENY</span>
+              <span class="rule-proto">ANY</span>
+              <span class="rule-desc" style="color:var(--accent-alt);">ANY → ANY : ANY | Default Deny — Implicit</span>
+            </div>
+          </div>
+
+          <!-- Firewall config code -->
+          <div class="code-block">
+            <div class="code-header">
+              <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+              <span class="code-lang">cisco ASA — ACL ejemplo</span>
+            </div>
+            <div class="code-body">
+<span class="cmt">! === ACL PERIMETRAL - CISCO ASA 9.x ===</span>
+
+<span class="cmt">! Permitir HTTPS entrante a servidor web en DMZ</span>
+<span class="kw">access-list</span> OUTSIDE_IN <span class="kw">extended permit</span> tcp any host <span class="num">10.10.40.10</span> <span class="kw">eq</span> <span class="num">443</span>
+<span class="kw">access-list</span> OUTSIDE_IN <span class="kw">extended permit</span> tcp any host <span class="num">10.10.40.10</span> <span class="kw">eq</span> <span class="num">80</span>
+
+<span class="cmt">! SSH solo desde red de administración</span>
+<span class="kw">access-list</span> INSIDE_IN <span class="kw">extended permit</span> tcp <span class="num">192.168.10.0</span> <span class="num">255.255.255.0</span> any <span class="kw">eq</span> <span class="num">22</span>
+
+<span class="cmt">! Denegar telnet en todos los sentidos</span>
+<span class="kw">access-list</span> OUTSIDE_IN <span class="kw">extended deny</span>  tcp any any <span class="kw">eq</span> <span class="num">23</span>
+<span class="kw">access-list</span> INSIDE_IN  <span class="kw">extended deny</span>  tcp any any <span class="kw">eq</span> <span class="num">23</span>
+
+<span class="cmt">! Aplicar ACL a interfaces</span>
+<span class="kw">access-group</span> OUTSIDE_IN <span class="kw">in interface</span> outside
+<span class="kw">access-group</span> INSIDE_IN  <span class="kw">in interface</span> inside
+
+<span class="cmt">! Verificar</span>
+<span class="fn">show access-list OUTSIDE_IN</span>
+<span class="fn">show conn</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── INCIDENTES ──────────────────────────────── -->
+      <section id="incidentes" class="mb-5">
+        <div class="section-divider">
+          <p class="section-label mb-0">02</p>
+          <h2 class="section-title ms-3">Protocolo de Respuesta a Incidentes</h2>
+        </div>
+
+        <!-- Severity scale -->
+        <div class="wiki-card mb-4">
+          <h5 class="mb-3">Escala de Severidad</h5>
+          <div class="severity-item">
+            <div class="sev-badge" style="background:rgba(255,0,0,0.15);color:#ff4444;border:1px solid #ff4444;">CRÍTICO P1</div>
+            <div>
+              <div style="font-size:.875rem;font-weight:600;">Brecha de datos / Ransomware / Sistema caído en producción</div>
+              <div style="font-size:.78rem;color:var(--text-muted);">Respuesta: INMEDIATA · Escalado: CIO + Responsable seguridad · SLA: &lt;15 min</div>
+            </div>
+          </div>
+          <div class="severity-item">
+            <div class="sev-badge" style="background:rgba(255,107,53,0.15);color:var(--accent-alt);border:1px solid var(--accent-alt);">ALTO P2</div>
+            <div>
+              <div style="font-size:.875rem;font-weight:600;">Acceso no autorizado detectado / Servicio crítico degradado</div>
+              <div style="font-size:.78rem;color:var(--text-muted);">Respuesta: &lt;1 hora · Escalado: Responsable área · SLA: &lt;4 horas resolución</div>
+            </div>
+          </div>
+          <div class="severity-item">
+            <div class="sev-badge" style="background:rgba(255,209,102,0.15);color:var(--accent-yellow);border:1px solid var(--accent-yellow);">MEDIO P3</div>
+            <div>
+              <div style="font-size:.875rem;font-weight:600;">Malware aislado / Cuenta comprometida sin propagación</div>
+              <div style="font-size:.78rem;color:var(--text-muted);">Respuesta: &lt;4 horas · Escalado: Técnico senior · SLA: 24 horas</div>
+            </div>
+          </div>
+          <div class="severity-item">
+            <div class="sev-badge" style="background:rgba(0,212,255,0.1);color:var(--accent);border:1px solid var(--accent);">BAJO P4</div>
+            <div>
+              <div style="font-size:.875rem;font-weight:600;">Actividad sospechosa / Fallo menor sin impacto</div>
+              <div style="font-size:.78rem;color:var(--text-muted);">Respuesta: Día laboral · Escalado: Técnico disponible · SLA: 72 horas</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="code-block" id="auditoria">
+          <div class="code-header">
+            <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+            <span class="code-lang">powershell — auditoría de eventos de seguridad</span>
+          </div>
+          <div class="code-body">
+<span class="cmt"># ============================================
+# Script: Get-SecurityAudit.ps1
+# Descripción: Auditoría de eventos críticos AD
+# ============================================</span>
+
+<span class="kw">param</span>(
+    [<span class="fn">int</span>]<span class="str">$HorasAtras</span> = <span class="num">24</span>,
+    [<span class="fn">string</span>]<span class="str">$Servidor</span> = <span class="str">"localhost"</span>
+)
+
+<span class="str">$desde</span> = (<span class="fn">Get-Date</span>).AddHours(-<span class="str">$HorasAtras</span>)
+
+<span class="cmt"># Eventos de seguridad críticos a monitorizar:</span>
+<span class="cmt"># 4624 - Inicio de sesión exitoso</span>
+<span class="cmt"># 4625 - Inicio de sesión fallido</span>
+<span class="cmt"># 4648 - Logon con credenciales explícitas</span>
+<span class="cmt"># 4720 - Cuenta de usuario creada</span>
+<span class="cmt"># 4726 - Cuenta de usuario eliminada</span>
+<span class="cmt"># 4768 - Solicitud de ticket Kerberos (TGT)</span>
+
+<span class="str">$eventIDs</span> = <span class="num">4625</span>, <span class="num">4648</span>, <span class="num">4720</span>, <span class="num">4726</span>
+
+<span class="fn">Get-WinEvent</span> -ComputerName <span class="str">$Servidor</span> -FilterHashtable @{
+    LogName   = <span class="str">'Security'</span>
+    Id        = <span class="str">$eventIDs</span>
+    StartTime = <span class="str">$desde</span>
+} | <span class="fn">ForEach-Object</span> {
+
+    <span class="str">$xml</span> = [xml]<span class="str">$_.ToXml()</span>
+    [<span class="fn">PSCustomObject</span>]@{
+        Hora      = <span class="str">$_.TimeCreated</span>
+        EventID   = <span class="str">$_.Id</span>
+        Usuario   = <span class="str">$xml.Event.EventData.Data</span> | <span class="fn">Where</span> { <span class="str">$_.Name</span> -eq <span class="str">'TargetUserName'</span> } | <span class="fn">Select-Object</span> -Exp <span class="str">'#text'</span>
+        Equipo    = <span class="str">$_.MachineName</span>
+        Resultado = <span class="kw">switch</span>(<span class="str">$_.Id</span>) {
+            <span class="num">4625</span> { <span class="str">"LOGIN FALLIDO"</span> }
+            <span class="num">4720</span> { <span class="str">"CUENTA CREADA"</span> }
+            <span class="num">4726</span> { <span class="str">"CUENTA ELIMINADA"</span> }
+            <span class="kw">default</span> { <span class="str">"EVENTO: $_"</span> }
+        }
+    }
+} | <span class="fn">Sort-Object</span> Hora -Descending |
+    <span class="fn">Export-Csv</span> <span class="str">"C:\IT\Security\Audit_$(Get-Date -f 'yyyyMMdd_HHmm').csv"</span> -NoTypeInformation
+
+<span class="fn">Write-Host</span> <span class="str">"[OK] Auditoría completada."</span> -ForegroundColor Green
+          </div>
+        </div>
+      </section>
+
+      <!-- ── INVENTARIO ──────────────────────────────── -->
+      <section id="inventario" class="mb-5">
+        <div class="section-divider">
+          <p class="section-label mb-0">03</p>
+          <h2 class="section-title ms-3">Inventario de Hardware</h2>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="inv-filter">
+          <input type="text" id="invSearch" placeholder="Filtrar por nombre, modelo, ubicación..." oninput="filterInventory()"/>
+          <select id="invType" onchange="filterInventory()" style="padding:.45rem .9rem;border-radius:4px;">
+            <option value="">Todos los tipos</option>
+            <option value="Servidor">Servidores</option>
+            <option value="Switch">Switches</option>
+            <option value="Router">Routers</option>
+            <option value="Workstation">Workstations</option>
+            <option value="Firewall">Firewalls</option>
+          </select>
+          <select id="invStatus" onchange="filterInventory()" style="padding:.45rem .9rem;border-radius:4px;">
+            <option value="">Todos los estados</option>
+            <option value="Activo">Activo</option>
+            <option value="Mantenimiento">Mantenimiento</option>
+            <option value="Retirado">Retirado</option>
+          </select>
+          <span id="invCount" style="font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--text-muted);white-space:nowrap;"></span>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrap">
+          <table class="wiki-table" id="invTable">
+            <thead>
+              <tr>
+                <th>TAG/ID</th>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Marca / Modelo</th>
+                <th>CPU / Specs</th>
+                <th>Ubicación</th>
+                <th>Garantía</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="invBody">
+              <tr data-type="Servidor" data-status="Activo">
+                <td class="mono">SRV-001</td>
+                <td><strong>srv-dc-01</strong></td>
+                <td>Servidor</td>
+                <td>Dell PowerEdge R750</td>
+                <td>2× Xeon Gold · 128 GB RAM</td>
+                <td>Rack A · U1-U2</td>
+                <td><span class="badge-wiki badge-success">2027</span></td>
+                <td><div class="hw-status"><div class="hw-dot ok"></div>Activo</div></td>
+              </tr>
+              <tr data-type="Servidor" data-status="Activo">
+                <td class="mono">SRV-002</td>
+                <td><strong>srv-dc-02</strong></td>
+                <td>Servidor</td>
+                <td>Dell PowerEdge R750</td>
+                <td>2× Xeon Gold · 128 GB RAM</td>
+                <td>Rack A · U3-U4</td>
+                <td><span class="badge-wiki badge-success">2027</span></td>
+                <td><div class="hw-status"><div class="hw-dot ok"></div>Activo</div></td>
+              </tr>
+              <tr data-type="Servidor" data-status="Activo">
+                <td class="mono">SRV-003</td>
+                <td><strong>srv-file-01</strong></td>
+                <td>Servidor</td>
+                <td>HPE ProLiant DL380 G10</td>
+                <td>2× Xeon Silver · 64 GB RAM</td>
+                <td>Rack A · U6-U7</td>
+                <td><span class="badge-wiki badge-warn">2025</span></td>
+                <td><div class="hw-status"><div class="hw-dot ok"></div>Activo</div></td>
+              </tr>
+              <tr data-type="Firewall" data-status="Activo">
+                <td class="mono">FW-001</td>
+                <td><strong>fw-perim-01</strong></td>
+                <td>Firewall</td>
+                <td>Cisco ASA 5555-X</td>
+                <td>8× GE · 3 GB RAM</td>
+                <td>Rack A · U12</td>
+                <td><span class="badge-wiki badge-success">2026</span></td>
+                <td><div class="hw-status"><div class="hw-dot ok"></div>Activo</div></td>
+              </tr>
+              <tr data-type="Router" data-status="Activo">
+                <td class="mono">RTR-001</td>
+                <td><strong>core-rtr-01</strong></td>
+                <td>Router</td>
+                <td>Cisco ISR 4431</td>
+                <td>4× GE · IOS 16.12</td>
+                <td>Rack A · U14</td>
+                <td><span class="badge-wiki badge-success">2027</span></td>
+                <td><div class="hw-status"><div class="hw-dot ok"></div>Activo</div></td>
+              </tr>
+              <tr data-type="Switch" data-status="Activo">
+                <td class="mono">SW-001</td>
+                <td><strong>core-sw-01</strong></td>
+                <td>Switch</td>
+                <td>Cisco Catalyst 9300-48P</td>
+                <td>48× PoE+ · 4× SFP+</td>
+                <td>Rack A · U16</td>
+                <td><span class="badge-wiki badge-success">2028</span></td>
+                <td><div class="hw-status"><div class="hw-dot ok"></div>Activo</div></td>
+              </tr>
+              <tr data-type="Switch" data-status="Activo">
+                <td class="mono">SW-002</td>
+                <td><strong>acc-sw-02</strong></td>
+                <td>Switch</td>
+                <td>Cisco Catalyst 2960-X</td>
+                <td>48× GE · 4× SFP</td>
+                <td>Planta 2 · Arma.</td>
+                <td><span class="badge-wiki badge-warn">2025</span></td>
+                <td><div class="hw-status"><div class="hw-dot warn"></div>Mantenimiento</div></td>
+              </tr>
+              <tr data-type="Workstation" data-status="Activo">
+                <td class="mono">WS-045</td>
+                <td><strong>pc-it-admin</strong></td>
+                <td>Workstation</td>
+                <td>Dell OptiPlex 7090</td>
+                <td>i7-10700 · 32 GB RAM</td>
+                <td>Dpto. IT</td>
+                <td><span class="badge-wiki badge-info">2026</span></td>
+                <td><div class="hw-status"><div class="hw-dot ok"></div>Activo</div></td>
+              </tr>
+              <tr data-type="Servidor" data-status="Retirado">
+                <td class="mono">SRV-099</td>
+                <td><strong>srv-old-backup</strong></td>
+                <td>Servidor</td>
+                <td>HP DL360 G7</td>
+                <td>Xeon X5650 · 32 GB RAM</td>
+                <td>Almacén</td>
+                <td><span class="badge-wiki badge-danger">Expirada</span></td>
+                <td><div class="hw-status"><div class="hw-dot off"></div>Retirado</div></td>
+              </tr>
+              <tr data-type="Servidor" data-status="Activo">
+                <td class="mono">SRV-004</td>
+                <td><strong>srv-backup-01</strong></td>
+                <td>Servidor</td>
+                <td>Dell PowerEdge R750 <span class="badge-wiki badge-info" style="font-size:.6rem;">NUEVO</span></td>
+                <td>2× Xeon Gold · 64 GB · 20 TB</td>
+                <td>Rack B · U1-U2</td>
+                <td><span class="badge-wiki badge-success">2029</span></td>
+                <td><div class="hw-status"><div class="hw-dot ok"></div>Activo</div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-2" style="font-size:.78rem;color:var(--text-muted);">
+          <span>Última sincronización: 15/04/2026 08:30 — <span class="text-accent">Auto-sync activo</span></span>
+          <a href="#" class="btn-wiki" style="padding:.3rem .8rem;font-size:.72rem;">+ Añadir equipo</a>
+        </div>
+
+        <!-- Licencias placeholder -->
+        <div id="licencias" class="mt-4">
+          <div class="wiki-alert info">
+            <span class="alert-icon">📦</span>
+            <div><strong>[PLACEHOLDER — Inventario de Licencias]</strong> Tabla de licencias de software: Microsoft 365, Windows Server, SQL Server, Veeam, VMware. Pendiente de integración con sistema ITSM. <a href="#" class="text-accent">Completar sección →</a></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Scripts de seguridad ───────────────────── -->
+      <section id="scripts-sec" class="mb-5">
+        <div class="section-divider">
+          <p class="section-label mb-0">04</p>
+          <h2 class="section-title ms-3">Scripts de Seguridad</h2>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+            <span class="code-lang">powershell — hardening checklist</span>
+          </div>
+          <div class="code-body">
+<span class="cmt"># ============================================
+# Script: Invoke-HardeningCheck.ps1
+# Descripción: Verificación de seguridad básica
+# ============================================</span>
+
+<span class="kw">function</span> <span class="fn">Test-SecurityBaseline</span> {
+    <span class="str">$checks</span> = @()
+
+    <span class="cmt"># 1. Firewall de Windows activo en todos los perfiles</span>
+    <span class="str">$fw</span> = <span class="fn">Get-NetFirewallProfile</span>
+    <span class="str">$checks</span> += [<span class="fn">PSCustomObject</span>]@{
+        Control  = <span class="str">"Windows Firewall"</span>
+        Estado   = <span class="kw">if</span> ((<span class="str">$fw</span> | <span class="fn">Where</span> {-not <span class="str">$_.Enabled</span>}).Count -eq <span class="num">0</span>) { <span class="str">"OK"</span> } <span class="kw">else</span> { <span class="str">"FALLO"</span> }
+    }
+
+    <span class="cmt"># 2. Windows Defender activo</span>
+    <span class="str">$av</span> = <span class="fn">Get-MpComputerStatus</span>
+    <span class="str">$checks</span> += [<span class="fn">PSCustomObject</span>]@{
+        Control  = <span class="str">"Windows Defender"</span>
+        Estado   = <span class="kw">if</span> (<span class="str">$av.AntivirusEnabled</span>) { <span class="str">"OK"</span> } <span class="kw">else</span> { <span class="str">"FALLO"</span> }
+    }
+
+    <span class="cmt"># 3. Actualizaciones pendientes</span>
+    <span class="str">$updates</span> = (<span class="fn">Get-WindowsUpdate</span> -ErrorAction SilentlyContinue).Count
+    <span class="str">$checks</span> += [<span class="fn">PSCustomObject</span>]@{
+        Control  = <span class="str">"Windows Updates"</span>
+        Estado   = <span class="kw">if</span> (<span class="str">$updates</span> -eq <span class="num">0</span>) { <span class="str">"OK"</span> } <span class="kw">else</span> { <span class="str">"PENDIENTES: $updates"</span> }
+    }
+
+    <span class="cmt"># 4. Cuenta de administrador local deshabilitada</span>
+    <span class="str">$admin</span> = <span class="fn">Get-LocalUser</span> <span class="str">"Administrator"</span>
+    <span class="str">$checks</span> += [<span class="fn">PSCustomObject</span>]@{
+        Control  = <span class="str">"Local Admin deshabilitado"</span>
+        Estado   = <span class="kw">if</span> (-not <span class="str">$admin.Enabled</span>) { <span class="str">"OK"</span> } <span class="kw">else</span> { <span class="str">"REVISAR"</span> }
+    }
+
+    <span class="cmt"># Mostrar resultado</span>
+    <span class="str">$checks</span> | <span class="fn">Format-Table</span> -AutoSize
+    <span class="str">$failed</span> = <span class="str">$checks</span> | <span class="fn">Where</span> { <span class="str">$_.Estado</span> -ne <span class="str">"OK"</span> }
+    <span class="kw">if</span> (<span class="str">$failed</span>) { <span class="fn">Write-Warning</span> <span class="str">"$($failed.Count) controles fallidos. Revisar urgente."</span> }
+    <span class="kw">else</span> { <span class="fn">Write-Host</span> <span class="str">"[OK] Baseline de seguridad superado."</span> -ForegroundColor Green }
+}
+
+<span class="fn">Test-SecurityBaseline</span>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="wiki-footer z-1">
+  <div class="container-xl">
+    <div class="row align-items-start g-4 mb-3">
+      <div class="col-md-4">
+        <div class="footer-brand mb-2">NextGen <span class="text-accent">Wiki-IT</span></div>
+        <p style="color:var(--text-muted);font-size:0.82rem;">Portal de documentación técnica del Departamento de IT.</p>
+      </div>
+      <div class="col-md-4">
+        <p style="color:var(--text-secondary);font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:0.75rem;">Secciones</p>
+        <div class="footer-links flex-column">
+          <a href="index.html">Inicio</a>
+          <a href="redes.html">Gestión de Redes</a>
+          <a href="sistemas.html">Sistemas Operativos</a>
+          <a href="seguridad.html">Seguridad e Inventario</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-copy d-flex justify-content-between flex-wrap gap-2">
+      <span>© 2026 NextGen Wiki-IT · Departamento de IT · Uso interno</span>
+      <span class="text-accent">MÓDULO: SEGURIDAD · BUILD: 3.1.0</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Inventory filter
+  function filterInventory() {
+    const search = document.getElementById('invSearch').value.toLowerCase();
+    const type   = document.getElementById('invType').value;
+    const status = document.getElementById('invStatus').value;
+    const rows   = document.querySelectorAll('#invBody tr');
+    let visible  = 0;
+
+    rows.forEach(row => {
+      const text    = row.textContent.toLowerCase();
+      const rowType = row.dataset.type || '';
+      const rowStat = row.dataset.status || '';
+      const show = text.includes(search)
+        && (!type   || rowType === type)
+        && (!status || rowStat === status);
+      row.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+
+    document.getElementById('invCount').textContent =
+      `Mostrando ${visible} de ${rows.length} equipos`;
+  }
+
+  // Init count
+  filterInventory();
+
+  // Sidebar scroll
+  const sections = document.querySelectorAll('section[id]');
+  const sideLinks = document.querySelectorAll('.sidebar-link');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) current = s.id; });
+    sideLinks.forEach(l => { l.classList.toggle('active', l.getAttribute('href') === '#' + current); });
+  });
+</script>
+</body>
+</html>
